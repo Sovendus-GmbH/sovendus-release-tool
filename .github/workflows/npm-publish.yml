@@ -26,9 +26,8 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: |
-          rm .npmrc
-          yarn install
+        run: yarn install
+
 
       - name: Run linter
         run: yarn lint
@@ -56,9 +55,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        run: |
-          rm .npmrc
-          yarn install
+        run: yarn install
 
       - name: Run linter
         run: yarn lint
