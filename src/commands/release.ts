@@ -16,15 +16,16 @@ const DEFAULT_CONFIG_PATH = "sov_release.config.ts";
 export async function loadConfig(
   resolvedConfigPath: string,
 ): Promise<ReleaseConfig> {
-  const module = await import(`file://${resolvedConfigPath}`);
-  return module.default as ReleaseConfig;
+  const module = (await import(`file://${resolvedConfigPath}`)) as {
+    default: ReleaseConfig;
+  };
+  return module.default;
 }
 
 /**
  * Runs the release process for packages defined in the config.
  */
 export async function release(
-  newVersionNumber: string,
   configPath: string = DEFAULT_CONFIG_PATH,
 ): Promise<void> {
   console.log(`Using config file: ${configPath}`);

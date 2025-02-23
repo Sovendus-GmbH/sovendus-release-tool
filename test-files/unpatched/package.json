@@ -1,6 +1,7 @@
 {
     "name": "sovendus-release-tool-test-package",
     "version": "1.0.0",
+    "license": "MIT",
     "dependencies": {
         "@types/eslint": "8.0.0",
         "react": "18.0.0"

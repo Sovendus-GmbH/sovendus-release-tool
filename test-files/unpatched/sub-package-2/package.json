@@ -1,6 +1,7 @@
 {
     "name": "sovendus-release-tool-test-package-2",
     "version": "1.0.0",
+    "license": "GPL-3.0-only",
     "scripts": {
         "lint": "echo linting...",
         "build": "echo building...",
