@@ -1,12 +1,15 @@
-import { execSync } from "child_process";
-import { existsSync, writeFileSync } from "fs";
-import { resolve } from "path";
+import { execSync } from "node:child_process";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import type { PackageJson, ReleaseConfig } from "../types";
 import { lintAndBuild, publishPackage } from "../utils/publishing";
-import { checkTagExists } from "../utils/versioning";
-
-const requireFn: <TReturnType>(path: string) => TReturnType = require;
+import {
+  bumpVersion,
+  checkTagExists,
+  hasNewCommitsSinceTag,
+  promptVersionIncrement,
+} from "../utils/versioning";
 
 const DEFAULT_CONFIG_PATH = "sov_release.config.ts";
 
@@ -50,6 +53,18 @@ export async function release(
   for (const pkg of config.packages) {
     // Determine the tag prefix (default to "v" if not provided)
     const tagPrefix = pkg.releaseOptions?.tagPrefix || "v";
+    const lastTag = `${tagPrefix}${pkg.version}`;
+    console.log(`Processing ${pkg.directory}...`);
+
+    if (!(await checkTagExists(lastTag))) {
+      console.log(`Tag ${lastTag} doesn't exist. Proceeding with release...`);
+    } else if (!hasNewCommitsSinceTag(lastTag)) {
+      console.log(`No new commits since ${lastTag}, skipping version bump.`);
+      continue;
+    }
+
+    const increment = await promptVersionIncrement();
+    const newVersionNumber = bumpVersion(pkg.version, increment);
     const tag = `${tagPrefix}${newVersionNumber}`;
 
     console.log(`Processing ${pkg.directory}...`);
@@ -86,6 +101,7 @@ export async function release(
       affectedPackages.push(pkg.directory);
       try {
         process.chdir(originalCwd);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         // ignore
       }
@@ -110,7 +126,8 @@ export function updateDependencyVersion(
   dependency: string,
   newVersion: string,
 ): void {
-  const packageJson = requireFn<PackageJson>(`${process.cwd()}/package.json`);
+  const pkgPath = `${process.cwd()}/package.json`;
+  const packageJson = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
   if (packageJson.dependencies && packageJson.dependencies[dependency]) {
     packageJson.dependencies[dependency] = newVersion;
     writeFileSync(
@@ -134,9 +151,23 @@ export function createGitTag(tag: string): void {
  * Runs tests for the given package path.
  */
 export function runTests(packagePath: string): void {
+  const pkgPath = `${packagePath}/package.json`;
+  if (!existsSync(pkgPath)) {
+    console.log(`No package.json found in ${packagePath}, skipping tests.`);
+    return;
+  }
+
+  const packageJson = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
+  if (!packageJson.scripts || !packageJson.scripts["test"]) {
+    console.log(
+      `No test script found in package.json at ${pkgPath}, skipping tests.`,
+    );
+    return;
+  }
+
   try {
     execSync(`cd ${packagePath} && yarn test`, { stdio: "inherit" });
-  } catch (error) {
+  } catch {
     throw new Error(`Tests failed in ${packagePath}`);
   }
 }

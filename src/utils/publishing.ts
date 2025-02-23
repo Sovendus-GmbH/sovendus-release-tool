@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
 
 export const lintAndBuild = (packagePath: string): void => {
   execSync(`cd ${packagePath} && yarn lint`, { stdio: "inherit" });
@@ -10,7 +10,7 @@ export const publishPackage = (
   newVersion: string,
   tagPrefix: string,
 ): void => {
-  execSync(`cd ${packagePath} && npm publish`, { stdio: "inherit" });
+  execSync(`cd ${packagePath} && yarn publish`, { stdio: "inherit" });
 
   try {
     execSync(`cd ${packagePath} && git commit -am "Release ${newVersion}"`, {
