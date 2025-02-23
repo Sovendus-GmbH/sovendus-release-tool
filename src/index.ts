@@ -1,9 +1,10 @@
-import { release } from "./commands/release";
+import { release } from "./commands/release.js";
+import { logger, loggerError } from "./utils/logger.js";
 
 release()
   .then(() => {
-    console.log("Release process completed successfully.");
+    logger("Release process completed successfully.");
   })
   .catch((error) => {
-    console.error("Error during release process:", error);
+    loggerError("Error during release process:", error);
   });

@@ -1,5 +1,7 @@
 import { execSync } from "node:child_process";
 
+import { logger } from "./logger.js";
+
 export const lintAndBuild = (packagePath: string): void => {
   execSync(`cd ${packagePath} && yarn lint`, { stdio: "inherit" });
   execSync(`cd ${packagePath} && yarn build`, { stdio: "inherit" });
@@ -19,7 +21,7 @@ export const publishPackage = (
   } catch (err) {
     const errorOutput = (err as Error).toString();
     if (errorOutput.includes("nothing to commit")) {
-      console.log("No changes detected, skipping git commit.");
+      logger("No changes detected, skipping git commit.");
     } else {
       throw err;
     }

@@ -2,14 +2,15 @@ import { execSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import type { PackageJson, ReleaseConfig } from "../types";
-import { lintAndBuild, publishPackage } from "../utils/publishing";
+import type { PackageJson, ReleaseConfig } from "../types/index.js";
+import { logger, loggerError } from "../utils/logger.js";
+import { lintAndBuild, publishPackage } from "../utils/publishing.js";
 import {
   bumpVersion,
   checkTagExists,
   hasNewCommitsSinceTag,
   promptVersionIncrement,
-} from "../utils/versioning";
+} from "../utils/versioning.js";
 
 const DEFAULT_CONFIG_PATH = "sov_release.config.ts";
 
@@ -31,7 +32,7 @@ export async function loadConfig(
 export async function release(
   configPath: string = DEFAULT_CONFIG_PATH,
 ): Promise<void> {
-  console.log(`Using config file: ${configPath}`);
+  logger(`Using config file: ${configPath}`);
   const resolvedConfigPath = resolve(process.cwd(), configPath);
 
   if (!existsSync(resolvedConfigPath)) {
@@ -54,12 +55,12 @@ export async function release(
     // Determine the tag prefix (default to "v" if not provided)
     const tagPrefix = pkg.releaseOptions?.tagPrefix || "v";
     const lastTag = `${tagPrefix}${pkg.version}`;
-    console.log(`Processing ${pkg.directory}...`);
+    logger(`Processing ${pkg.directory}...`);
 
     if (!(await checkTagExists(lastTag))) {
-      console.log(`Tag ${lastTag} doesn't exist. Proceeding with release...`);
+      logger(`Tag ${lastTag} doesn't exist. Proceeding with release...`);
     } else if (!hasNewCommitsSinceTag(lastTag)) {
-      console.log(`No new commits since ${lastTag}, skipping version bump.`);
+      logger(`No new commits since ${lastTag}, skipping version bump.`);
       continue;
     }
 
@@ -67,11 +68,11 @@ export async function release(
     const newVersionNumber = bumpVersion(pkg.version, increment);
     const tag = `${tagPrefix}${newVersionNumber}`;
 
-    console.log(`Processing ${pkg.directory}...`);
+    logger(`Processing ${pkg.directory}...`);
 
     try {
       if (await checkTagExists(tag)) {
-        console.log(`Skipping ${pkg.directory}: tag ${tag} already exists.`);
+        logger(`Skipping ${pkg.directory}: tag ${tag} already exists.`);
         continue;
       }
 
@@ -90,14 +91,14 @@ export async function release(
         publishPackage(process.cwd(), newVersionNumber, tagPrefix);
         createGitTag(tag);
       } else {
-        console.log(
+        logger(
           `Skipping release steps for ${pkg.directory} as release flag is false.`,
         );
       }
 
       process.chdir(originalCwd);
     } catch (error) {
-      console.error(`Error processing ${pkg.directory}:`, error);
+      loggerError(`Error processing ${pkg.directory}:`, error);
       affectedPackages.push(pkg.directory);
       try {
         process.chdir(originalCwd);
@@ -110,10 +111,10 @@ export async function release(
   }
 
   if (overallError) {
-    console.error(
+    loggerError(
       "The release process encountered errors for the following packages:",
+      affectedPackages.join(", "),
     );
-    console.error(affectedPackages.join(", "));
     throw new Error("Release process encountered errors.");
   }
 }
@@ -134,7 +135,7 @@ export function updateDependencyVersion(
       `${process.cwd()}/package.json`,
       JSON.stringify(packageJson, null, 2),
     );
-    console.log(`Updated dependency ${dependency} to version ${newVersion}`);
+    logger(`Updated dependency ${dependency} to version ${newVersion}`);
   }
 }
 
@@ -153,13 +154,13 @@ export function createGitTag(tag: string): void {
 export function runTests(packagePath: string): void {
   const pkgPath = `${packagePath}/package.json`;
   if (!existsSync(pkgPath)) {
-    console.log(`No package.json found in ${packagePath}, skipping tests.`);
+    logger(`No package.json found in ${packagePath}, skipping tests.`);
     return;
   }
 
   const packageJson = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
   if (!packageJson.scripts || !packageJson.scripts["test"]) {
-    console.log(
+    logger(
       `No test script found in package.json at ${pkgPath}, skipping tests.`,
     );
     return;
