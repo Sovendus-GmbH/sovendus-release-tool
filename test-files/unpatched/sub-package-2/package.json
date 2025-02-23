@@ -1,0 +1,13 @@
+{
+    "name": "sovendus-release-tool-test-package-2",
+    "version": "1.0.0",
+    "scripts": {
+        "lint": "echo linting...",
+        "build": "echo building...",
+        "test": "echo testing..."
+    },
+    "dependencies": {
+        "react": "18.0.0",
+        "sovendus-release-tool-test-package-1": "1.0.0"
+    }
+}

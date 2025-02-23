@@ -1,0 +1,17 @@
+{
+    "name": "sovendus-release-tool-test-package",
+    "version": "1.0.0",
+    "dependencies": {
+        "@types/eslint": "8.0.0",
+        "react": "18.0.0"
+    },
+    "devDependencies": {
+        "typescript": "4.0.0"
+    },
+    "peerDependencies": {
+        "react-dom": "^4.0.0"
+    },
+    "updateIgnoreDependencies": [
+        "@types/eslint"
+    ]
+}
