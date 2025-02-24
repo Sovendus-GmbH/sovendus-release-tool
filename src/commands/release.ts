@@ -53,7 +53,7 @@ export async function release(
 
   for (const pkg of config.packages) {
     // Determine the tag prefix (default to "v" if not provided)
-    const tagPrefix = pkg.releaseOptions?.tagPrefix || "v";
+    const tagPrefix = pkg.releaseOptions?.tagPrefix || "";
     const lastTag = `${tagPrefix}${pkg.version}`;
     logger(`Processing ${pkg.directory}...`);
 
@@ -65,7 +65,11 @@ export async function release(
     }
 
     const increment = await promptVersionIncrement();
-    const newVersionNumber = bumpVersion(pkg.version, increment);
+    const oldVersionNumber = config.globalVersion || pkg.version;
+    if (!oldVersionNumber) {
+      throw new Error(`No version number found for package ${pkg.directory}.`);
+    }
+    const newVersionNumber = bumpVersion(oldVersionNumber, increment);
     const tag = `${tagPrefix}${newVersionNumber}`;
 
     logger(`Processing ${pkg.directory}...`);

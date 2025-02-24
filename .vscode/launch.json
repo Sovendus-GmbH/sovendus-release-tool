@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Deno: Debug Release Tool",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "deno",
+        "runtimeArgs": [
+          "run",
+          "--inspect",
+        ],
+        "program": "${workspaceFolder}/src/index.ts",
+        "cwd": "${workspaceFolder}"
+      }
+    ]
+  }

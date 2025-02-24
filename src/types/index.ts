@@ -9,18 +9,19 @@ export interface PackageJson {
 
 export interface ReleaseConfig {
   packages: ReleasePackage[];
+  globalVersion?: string;
 }
 
 export interface ReleasePackage {
   directory: string;
-  version: string;
+  version?: string;
   release: boolean;
   releaseOptions?: ReleaseOptions;
   updateDeps: boolean;
 }
 
 export interface ReleaseOptions {
-  tagPrefix: string;
+  tagPrefix?: string;
   foldersToScanAndBumpThisPackage?: {
     folder: string;
   }[];

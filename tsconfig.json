@@ -11,7 +11,7 @@
     "outDir": "./dist",
     "rootDir": "./"
   },
-  "include": ["src/**/*.ts", "test-files/**/*.ts"],
+  "include": ["src/**/*.ts", "test-files/**/*.ts", "sov_release.config.ts"],
   "exclude": ["node_modules"]
 
 }
