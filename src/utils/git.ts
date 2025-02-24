@@ -106,6 +106,30 @@ export async function ensureMainBranch(): Promise<void> {
         }
       } else {
         logger("Please switch to the main branch to proceed.");
+
+        // Suggest opening a pull request on GitHub
+        const githubRepoUrl = execSync("git config --get remote.origin.url", {
+          encoding: "utf8",
+        }).trim();
+        const githubPrUrl = `${githubRepoUrl
+          .replace(/\.git$/, "")
+          .replace(":", "/")
+          .replace("git@", "https://")}/compare/main...${currentBranch}`;
+        logger(`Open a Pull Request on GitHub: ${githubPrUrl}`);
+
+        // Suggest opening a merge request on GitLab
+        const gitlabRepoUrl = execSync("git config --get remote.origin.url", {
+          encoding: "utf8",
+        }).trim();
+        const gitlabMrUrl = `${gitlabRepoUrl
+          .replace(/\.git$/, "")
+          .replace(":", "/")
+          .replace(
+            "git@",
+            "https://",
+          )}/-/merge_requests/new?source_branch=${currentBranch}&target_branch=main`;
+        logger(`Open a Merge Request on GitLab: ${gitlabMrUrl}`);
+
         process.exit(1);
       }
     }
