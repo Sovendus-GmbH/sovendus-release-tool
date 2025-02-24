@@ -81,17 +81,34 @@ export async function promptVersionIncrement(): Promise<
   return answers.increment;
 }
 
-export function ensureMainBranch(): void {
+export async function ensureMainBranch(): Promise<void> {
   try {
     const currentBranch = execSync("git rev-parse --abbrev-ref HEAD", {
       encoding: "utf8",
     }).trim();
     if (currentBranch !== "main") {
-      loggerError(
-        `You are currently on branch: ${currentBranch}. Please switch to the main branch to proceed.`,
-        undefined,
-      );
-      process.exit(1);
+      loggerError(`You are currently on branch: ${currentBranch}.`, undefined);
+      const { shouldSwitch } = await inquirer.prompt([
+        {
+          type: "confirm",
+          name: "shouldSwitch",
+          message: "Do you want to switch to the main branch?",
+          default: false,
+        },
+      ]);
+
+      if (shouldSwitch) {
+        try {
+          execSync("git checkout main", { stdio: "inherit" });
+          logger("Switched to the main branch.");
+        } catch (error) {
+          loggerError("Error switching to main branch:", error);
+          process.exit(1);
+        }
+      } else {
+        logger("Please switch to the main branch to proceed.");
+        process.exit(1);
+      }
     }
   } catch (error) {
     loggerError("Error checking current branch:", error);
