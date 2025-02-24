@@ -34,10 +34,11 @@ export function createGitTag(tag: string): void {
       if (error.message.includes("nothing to commit")) {
         logger("No changes detected, skipping git commit.");
       } else {
-        // throw error;
+        loggerError("Failed to commit changes.", error);
+        throw error;
       }
     } else {
-      // throw error;
+      throw error;
     }
   }
   execSync(`git tag ${tag}`, { stdio: "inherit" });
