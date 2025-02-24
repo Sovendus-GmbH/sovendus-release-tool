@@ -1,6 +1,6 @@
 {
   "name": "sovendus-release-tool",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A CLI tool for managing package releases with version bumping and publishing.",
   "license": "GPL-3.0-only",
   "bin": {
@@ -8,6 +8,19 @@
   },
   "private": false,
   "type": "module",
+  "files": [
+    "dist/**/*"
+  ],
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
   "scripts": {
     "build": "rm -rf ./dist && tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
