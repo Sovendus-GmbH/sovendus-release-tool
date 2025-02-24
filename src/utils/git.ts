@@ -37,7 +37,7 @@ export function createGitTag(tag: string): void {
         throw error;
       }
     } else {
-      throw error;
+      // throw error;
     }
   }
   execSync(`git tag ${tag}`, { stdio: "inherit" });
