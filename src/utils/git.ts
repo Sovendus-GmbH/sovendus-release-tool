@@ -116,20 +116,24 @@ export async function ensureMainBranch(): Promise<void> {
           encoding: "utf8",
         }).trim();
 
+        let baseUrl = repoUrl.replace(/\.git$/, "");
+
+        if (baseUrl.startsWith("git@")) {
+          baseUrl = baseUrl.replace(/^git@([^:]+):/, "https://$1/");
+        }
+
+        if (!baseUrl.startsWith("https://") && !baseUrl.startsWith("http://")) {
+          baseUrl = `https://${baseUrl}`;
+        }
+
+        // Remove trailing slashes
+        baseUrl = baseUrl.replace(/\/+$/, "");
+
         if (repoUrl.includes("github.com")) {
-          const githubPrUrl = `${repoUrl
-            .replace(/\.git$/, "")
-            .replace(":", "/")
-            .replace("git@", "https://")}/compare/main...${currentBranch}`;
+          const githubPrUrl = `${baseUrl}/compare/main...${currentBranch}`;
           logger(`Open a Pull Request on GitHub: ${githubPrUrl}`);
         } else if (repoUrl.includes("gitlab.com")) {
-          const gitlabMrUrl = `${repoUrl
-            .replace(/\.git$/, "")
-            .replace(":", "/")
-            .replace(
-              "git@",
-              "https://",
-            )}/-/merge_requests/new?source_branch=${currentBranch}&target_branch=main`;
+          const gitlabMrUrl = `${baseUrl}/-/merge_requests/new?source_branch=${currentBranch}&target_branch=main`;
           logger(`Open a Merge Request on GitLab: ${gitlabMrUrl}`);
         } else {
           logger("Could not determine the repository type (GitHub/GitLab).");
