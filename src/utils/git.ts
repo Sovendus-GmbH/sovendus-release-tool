@@ -30,8 +30,12 @@ export function createGitTag(tag: string): void {
   try {
     execSync(`git commit -am "Release: ${tag}"`, { stdio: "inherit" });
   } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes("nothing to commit")) {
-      logger("No changes detected, skipping git commit.");
+    if (error instanceof Error) {
+      if (error.message.includes("nothing to commit")) {
+        logger("No changes detected, skipping git commit.");
+      } else {
+        throw error;
+      }
     } else {
       throw error;
     }
