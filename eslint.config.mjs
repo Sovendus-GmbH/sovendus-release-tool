@@ -23,7 +23,8 @@ const baseConfig = [
     ignores: [
       "node_modules/**/",
       "dist/**/",
-      "eslint.config.mjs"
+      "eslint.config.mjs",
+      "vite.config.ts"
     ],
   },
 

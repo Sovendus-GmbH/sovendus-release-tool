@@ -1,0 +1,10 @@
+.github
+.vscode
+node_modules/
+.env
+.env.example
+.gitignore
+eslint.config.mjs
+tsconfig.build.json
+tsconfig.json
+yarn.lock
