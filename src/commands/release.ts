@@ -1,16 +1,24 @@
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
-import type { PackageJson, ReleaseConfig } from "../types/index.js";
-import { logger, loggerError } from "../utils/logger.js";
-import { lintAndBuild, publishPackage } from "../utils/publishing.js";
+import inquirer from "inquirer";
+
+import type { ReleaseConfig } from "../types/index.js";
 import {
-  bumpVersion,
   checkTagExists,
+  createGitTag,
+  getLastVersionFromGitTag,
   hasNewCommitsSinceTag,
   promptVersionIncrement,
-} from "../utils/versioning.js";
+} from "../utils/git.js";
+import { logger, loggerError } from "../utils/logger.js";
+import {
+  updateDependencyVersion,
+  updatePackageVersion,
+} from "../utils/package-json.js";
+import { publishPackage } from "../utils/publishing.js";
+import { lintAndBuild, runTests } from "../utils/scripts.js";
+import { bumpVersion, compareVersions } from "../utils/versioning.js";
 
 const DEFAULT_CONFIG_PATH = "sov_release.config.ts";
 
@@ -52,31 +60,60 @@ export async function release(
   const originalCwd = process.cwd();
 
   for (const pkg of config.packages) {
-    // Determine the tag prefix (default to "v" if not provided)
     const tagPrefix = pkg.releaseOptions?.tagPrefix || "";
-    const lastTag = `${tagPrefix}${pkg.version}`;
+    const currentGitVersionNumber = getLastVersionFromGitTag(tagPrefix);
+    const currentVersionNumber = (config.globalVersion ||
+      pkg.version) as string;
+
+    const lastTag = `${tagPrefix}${currentGitVersionNumber}`;
     logger(`Processing ${pkg.directory}...`);
 
-    if (!(await checkTagExists(lastTag))) {
-      logger(`Tag ${lastTag} doesn't exist. Proceeding with release...`);
-    } else if (!hasNewCommitsSinceTag(lastTag)) {
+    if (!hasNewCommitsSinceTag(lastTag)) {
       logger(`No new commits since ${lastTag}, skipping version bump.`);
       continue;
     }
 
-    const increment = await promptVersionIncrement();
-    const oldVersionNumber = config.globalVersion || pkg.version;
-    if (!oldVersionNumber) {
-      throw new Error(`No version number found for package ${pkg.directory}.`);
+    let finalVersionNumber: string;
+    if (!currentVersionNumber) {
+      logger(
+        `No version specified in config, using last git version if available: ${currentGitVersionNumber}`,
+      );
+      finalVersionNumber = currentGitVersionNumber;
+    } else {
+      finalVersionNumber = currentVersionNumber;
     }
-    const newVersionNumber = bumpVersion(oldVersionNumber, increment);
-    const tag = `${tagPrefix}${newVersionNumber}`;
 
-    logger(`Processing ${pkg.directory}...`);
+    const lastTagVersionIsOlder =
+      compareVersions(currentVersionNumber, currentGitVersionNumber) > 0;
+
+    if (!lastTagVersionIsOlder) {
+      const increment = await promptVersionIncrement();
+      finalVersionNumber = bumpVersion(currentGitVersionNumber, increment);
+    } else {
+      const { adjust } = await inquirer.prompt([
+        {
+          type: "confirm",
+          name: "adjust",
+          message: `Current version (${currentVersionNumber}) is already newer than the last tag (${currentGitVersionNumber}). Change it again?`,
+        },
+      ]);
+      if (adjust) {
+        const incrementOverride = await promptVersionIncrement();
+        finalVersionNumber = bumpVersion(
+          currentGitVersionNumber,
+          incrementOverride,
+        );
+      }
+    }
+
+    updatePackageVersion(pkg, finalVersionNumber);
+
+    const newTag = `${tagPrefix}${finalVersionNumber}`;
+    logger(`Processing tag (${newTag}) for dir ${pkg.directory}...`);
 
     try {
-      if (await checkTagExists(tag)) {
-        logger(`Skipping ${pkg.directory}: tag ${tag} already exists.`);
+      if (await checkTagExists(newTag)) {
+        logger(`Skipping ${pkg.directory}: tag ${newTag} already exists.`);
         continue;
       }
 
@@ -85,15 +122,20 @@ export async function release(
 
       // Update dependency version if flag enabled
       if (pkg.updateDeps) {
-        updateDependencyVersion("sovendus-integration-types", newVersionNumber);
+        logger(`Updating dependencies for ${pkg.directory}...`);
+        updateDependencyVersion(
+          "sovendus-integration-types",
+          finalVersionNumber,
+        );
       }
 
       // Only perform full release steps if the release flag is true
       if (pkg.release) {
+        logger(`Releasing ${pkg.directory}...`);
         lintAndBuild(process.cwd());
         runTests(process.cwd());
-        publishPackage(process.cwd(), newVersionNumber, tagPrefix);
-        createGitTag(tag);
+        publishPackage(process.cwd(), finalVersionNumber, tagPrefix);
+        createGitTag(newTag);
       } else {
         logger(
           `Skipping release steps for ${pkg.directory} as release flag is false.`,
@@ -120,59 +162,5 @@ export async function release(
       affectedPackages.join(", "),
     );
     throw new Error("Release process encountered errors.");
-  }
-}
-
-/**
- * Updates a dependency version in the package.json.
- * An optional requireFn can be provided for testing.
- */
-export function updateDependencyVersion(
-  dependency: string,
-  newVersion: string,
-): void {
-  const pkgPath = `${process.cwd()}/package.json`;
-  const packageJson = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
-  if (packageJson.dependencies && packageJson.dependencies[dependency]) {
-    packageJson.dependencies[dependency] = newVersion;
-    writeFileSync(
-      `${process.cwd()}/package.json`,
-      JSON.stringify(packageJson, null, 2),
-    );
-    logger(`Updated dependency ${dependency} to version ${newVersion}`);
-  }
-}
-
-/**
- * Creates a new Git tag and pushes commits and tags.
- */
-export function createGitTag(tag: string): void {
-  execSync(`git commit -am "Release: ${tag}"`, { stdio: "inherit" });
-  execSync(`git tag ${tag}`, { stdio: "inherit" });
-  execSync("git push && git push --tags", { stdio: "inherit" });
-}
-
-/**
- * Runs tests for the given package path.
- */
-export function runTests(packagePath: string): void {
-  const pkgPath = `${packagePath}/package.json`;
-  if (!existsSync(pkgPath)) {
-    logger(`No package.json found in ${packagePath}, skipping tests.`);
-    return;
-  }
-
-  const packageJson = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
-  if (!packageJson.scripts || !packageJson.scripts["test"]) {
-    logger(
-      `No test script found in package.json at ${pkgPath}, skipping tests.`,
-    );
-    return;
-  }
-
-  try {
-    execSync(`cd ${packagePath} && yarn test`, { stdio: "inherit" });
-  } catch {
-    throw new Error(`Tests failed in ${packagePath}`);
   }
 }

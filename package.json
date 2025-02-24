@@ -1,6 +1,6 @@
 {
   "name": "sovendus-release-tool",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A CLI tool for managing package releases with version bumping and publishing.",
   "license": "GPL-3.0-only",
   "bin": {
@@ -23,7 +23,7 @@
   },
   "scripts": {
     "build": "vite build",
-    "test": "echo 'Skipping tests for now' && # vitest",
+    "test": "echo 'Skipping tests for now' # vitest",
     "lint": "eslint . --fix",
     "release": "deno run -A --unstable-sloppy-imports src/index.ts"
   },
