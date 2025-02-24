@@ -93,7 +93,7 @@ export async function ensureMainBranch(): Promise<void> {
           type: "confirm",
           name: "shouldSwitch",
           message: "Do you want to switch to the main branch?",
-          default: false,
+          // default: false,
         },
       ]);
 
