@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { release } from "./commands/release.js";
 import { logger, loggerError } from "./utils/logger.js";
 
