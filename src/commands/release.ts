@@ -133,9 +133,9 @@ export async function release(
 
   if (overallError) {
     loggerError(
-      "The release process encountered errors for the following packages:",
+      "The release process encountered the above errors for the following packages:",
       affectedPackages.join(", "),
     );
-    throw new Error("Release process encountered errors.");
+    process.exit(1);
   }
 }
