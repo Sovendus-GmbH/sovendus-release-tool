@@ -88,7 +88,7 @@ export async function ensureMainBranch(): Promise<void> {
     }).trim();
     if (currentBranch !== "main") {
       loggerError(`You are currently on branch: ${currentBranch}.`, undefined);
-      const { shouldSwitch } = await inquirer.prompt([
+      const answer = await inquirer.prompt([
         {
           type: "confirm",
           name: "shouldSwitch",
@@ -96,6 +96,7 @@ export async function ensureMainBranch(): Promise<void> {
           default: false,
         },
       ]);
+      const shouldSwitch = answer.shouldSwitch;
 
       if (shouldSwitch) {
         try {
