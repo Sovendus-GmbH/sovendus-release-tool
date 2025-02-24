@@ -43,9 +43,6 @@ export const lintAndBuild = (packagePath: string): void => {
     console.error(
       `Linting errors detected in ${packagePath}. Aborting release.`,
     );
-    console.error(
-      `Linting errors detected in ${packagePath}. Aborting release.`,
-    );
     console.error(`[ReleaseError] Failing package: ${packagePath}`);
     process.exit(1);
   }
