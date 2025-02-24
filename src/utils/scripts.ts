@@ -35,7 +35,7 @@ export const lintAndBuild = (packagePath: string): void => {
     // Capture lint output; let eslint fail on lint errors
     lintOutput = execSync(`cd ${packagePath} && yarn lint`, {
       encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
+      env: { ...process.env, FORCE_COLOR: "1" },
     });
   } catch (err: any) {
     lintOutput = err.stdout ? err.stdout.toString() : err.message;
