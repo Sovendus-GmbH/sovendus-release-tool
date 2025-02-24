@@ -95,14 +95,12 @@ export async function ensureMainBranch(): Promise<void> {
           message: "Do you want to switch to the main branch?",
           choices: [
             { name: "Switch to main", value: "switch" },
-            {
-              name: "Open Pull Request on GitHub and Merge Request on GitLab",
-              value: "openRequests",
-            },
+            { name: "Open Pull Request/Merge Request", value: "openRequest" },
             { name: "Cancel", value: "cancel" },
           ],
         },
       ]);
+
       if (shouldSwitch === "switch") {
         try {
           execSync("git checkout main", { stdio: "inherit" });
@@ -111,31 +109,31 @@ export async function ensureMainBranch(): Promise<void> {
           loggerError("Error switching to main branch:", error);
           process.exit(1);
         }
-      } else if (shouldSwitch === "openRequests") {
+      } else if (shouldSwitch === "openRequest") {
         logger("Please create a Pull Request or Merge Request.");
 
-        // Suggest opening a pull request on GitHub
-        const githubRepoUrl = execSync("git config --get remote.origin.url", {
+        const repoUrl = execSync("git config --get remote.origin.url", {
           encoding: "utf8",
         }).trim();
-        const githubPrUrl = `${githubRepoUrl
-          .replace(/\.git$/, "")
-          .replace(":", "/")
-          .replace("git@", "https://")}/compare/main...${currentBranch}`;
-        logger(`Open a Pull Request on GitHub: ${githubPrUrl}`);
 
-        // Suggest opening a merge request on GitLab
-        const gitlabRepoUrl = execSync("git config --get remote.origin.url", {
-          encoding: "utf8",
-        }).trim();
-        const gitlabMrUrl = `${gitlabRepoUrl
-          .replace(/\.git$/, "")
-          .replace(":", "/")
-          .replace(
-            "git@",
-            "https://",
-          )}/-/merge_requests/new?source_branch=${currentBranch}&target_branch=main`;
-        logger(`Open a Merge Request on GitLab: ${gitlabMrUrl}`);
+        if (repoUrl.includes("github.com")) {
+          const githubPrUrl = `${repoUrl
+            .replace(/\.git$/, "")
+            .replace(":", "/")
+            .replace("git@", "https://")}/compare/main...${currentBranch}`;
+          logger(`Open a Pull Request on GitHub: ${githubPrUrl}`);
+        } else if (repoUrl.includes("gitlab.com")) {
+          const gitlabMrUrl = `${repoUrl
+            .replace(/\.git$/, "")
+            .replace(":", "/")
+            .replace(
+              "git@",
+              "https://",
+            )}/-/merge_requests/new?source_branch=${currentBranch}&target_branch=main`;
+          logger(`Open a Merge Request on GitLab: ${gitlabMrUrl}`);
+        } else {
+          logger("Could not determine the repository type (GitHub/GitLab).");
+        }
 
         process.exit(1);
       } else {
