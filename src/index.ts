@@ -10,3 +10,10 @@ release()
   .catch((error) => {
     loggerError("Error during release process:", error);
   });
+
+export {
+  PackageJson,
+  ReleaseConfig,
+  ReleaseOptions,
+  ReleasePackage,
+} from "./types/index.js";
