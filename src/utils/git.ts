@@ -80,3 +80,69 @@ export async function promptVersionIncrement(): Promise<
     ]);
   return answers.increment;
 }
+
+export function ensureMainBranch(): void {
+  try {
+    const currentBranch = execSync("git rev-parse --abbrev-ref HEAD", {
+      encoding: "utf8",
+    }).trim();
+    if (currentBranch !== "main") {
+      loggerError(
+        `You are currently on branch: ${currentBranch}. Please switch to the main branch to proceed.`,
+        undefined,
+      );
+      process.exit(1);
+    }
+  } catch (error) {
+    loggerError("Error checking current branch:", error);
+    process.exit(1);
+  }
+}
+
+export async function handleUncommittedChanges(): Promise<void> {
+  let statusOutput: string;
+  try {
+    statusOutput = execSync("git status --porcelain", { encoding: "utf8" });
+  } catch (error) {
+    loggerError("Error checking git status:", error);
+    process.exit(1);
+  }
+
+  if (statusOutput.trim().length > 0) {
+    logger("Uncommitted changes detected:");
+    logger(statusOutput);
+
+    const { action } = await inquirer.prompt([
+      {
+        type: "list",
+        name: "action",
+        message: "Uncommitted changes found. What do you want to do?",
+        choices: [
+          { name: "Stage all and commit", value: "commit" },
+          { name: "Cancel release", value: "cancel" },
+        ],
+      },
+    ]);
+
+    if (action === "cancel") {
+      logger("Release cancelled.");
+      process.exit(1);
+    } else {
+      const { commitMessage } = await inquirer.prompt([
+        {
+          type: "input",
+          name: "commitMessage",
+          message: "Enter commit message for the changes:",
+        },
+      ]);
+
+      try {
+        execSync("git add .", { stdio: "inherit" });
+        execSync(`git commit -m "${commitMessage}"`, { stdio: "inherit" });
+      } catch (error) {
+        loggerError("Error during commit:", error);
+        process.exit(1);
+      }
+    }
+  }
+}
