@@ -96,7 +96,7 @@ export async function ensureMainBranch(): Promise<void> {
           default: false,
         },
       ]);
-      const shouldSwitch = answer.shouldSwitch;
+      const shouldSwitch = (await answer).shouldSwitch;
 
       if (shouldSwitch) {
         try {
