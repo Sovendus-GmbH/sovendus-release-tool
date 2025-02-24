@@ -70,7 +70,7 @@ in your package.json add the following script:
 ```json
 {
   "scripts": {
-    "release": "sovendus-release-tool"
+    "pub": "sovendus-release-tool"
   }
 }
 ```
@@ -78,28 +78,9 @@ in your package.json add the following script:
 Then run the following command:
 
 ```bash
-npm run release
+yarn pub
 ```
-
-Replace `<new_version_number>` with the desired version number for the release.
-
-## Commands
-
-- **release**: This command initiates the release process, which includes:
-  - Bumping the version of all packages.
-  - Linting and building each package.
-  - Publishing each package to npm.
-  - Creating a new commit and tagging the release.
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps to contribute:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Make your changes and commit them.
-4. Push your branch and create a pull request.
-
-## License
-
-This project is licensed under the GPL V3 only License. See the LICENSE file for more details.
+If you want to contribute or report issues, please follow these steps in our developer guide here: [Developer Guide](./readme-dev.md)
