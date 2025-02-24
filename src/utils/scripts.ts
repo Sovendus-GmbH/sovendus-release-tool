@@ -32,20 +32,26 @@ export function runTests(packagePath: string): void {
 export const lintAndBuild = (packagePath: string): void => {
   let lintOutput = "";
   try {
-    // Capture lint output instead of using "inherit"
+    // Capture lint output and let eslint fail on lint errors
     lintOutput = execSync(`cd ${packagePath} && yarn lint`, {
       encoding: "utf8",
-      stdio: ["inherit", "pipe", "pipe"],
+      stdio: ["pipe", "pipe", "pipe"],
     });
   } catch (err: any) {
-    // Capture any error output from linting
+    // Capture the lint output from stderr or error message
     lintOutput = err.stdout ? err.stdout.toString() : err.message;
+    // Ensure linting errors appear at the bottom
+    console.log("\nLinting output:");
+    console.log(lintOutput);
+    throw new Error(
+      `Linting errors detected in ${packagePath}. Aborting release.`,
+    );
   }
 
   // Run the build command (its output goes directly to the terminal)
   execSync(`cd ${packagePath} && yarn build`, { stdio: "inherit" });
 
-  // Now, display linting output at the bottom, if any
+  // Display linting output if any (warnings may still appear here)
   if (lintOutput.trim().length > 0) {
     console.log("\nLinting output:");
     console.log(lintOutput);
