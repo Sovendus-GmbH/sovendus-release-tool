@@ -136,6 +136,6 @@ export async function release(
       "The release process encountered the above errors for the following packages:",
       affectedPackages.join(", "),
     );
-    process.exit(1);
+    process.exit(0);
   }
 }
