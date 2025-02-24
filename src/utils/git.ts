@@ -90,13 +90,20 @@ export async function ensureMainBranch(): Promise<void> {
       loggerError(`You are currently on branch: ${currentBranch}.`, undefined);
       const { shouldSwitch } = await inquirer.prompt([
         {
-          type: "confirm",
+          type: "list",
           name: "shouldSwitch",
           message: "Do you want to switch to the main branch?",
-          default: false,
+          choices: [
+            { name: "Switch to main", value: "switch" },
+            {
+              name: "Open Pull Request on GitHub and Merge Request on GitLab",
+              value: "openRequests",
+            },
+            { name: "Cancel", value: "cancel" },
+          ],
         },
       ]);
-      if (shouldSwitch) {
+      if (shouldSwitch === "switch") {
         try {
           execSync("git checkout main", { stdio: "inherit" });
           logger("Switched to the main branch.");
@@ -104,8 +111,8 @@ export async function ensureMainBranch(): Promise<void> {
           loggerError("Error switching to main branch:", error);
           process.exit(1);
         }
-      } else {
-        logger("Please switch to the main branch to proceed.");
+      } else if (shouldSwitch === "openRequests") {
+        logger("Please create a Pull Request or Merge Request.");
 
         // Suggest opening a pull request on GitHub
         const githubRepoUrl = execSync("git config --get remote.origin.url", {
@@ -130,6 +137,9 @@ export async function ensureMainBranch(): Promise<void> {
           )}/-/merge_requests/new?source_branch=${currentBranch}&target_branch=main`;
         logger(`Open a Merge Request on GitLab: ${gitlabMrUrl}`);
 
+        process.exit(1);
+      } else {
+        logger("Release cancelled.");
         process.exit(1);
       }
     }
