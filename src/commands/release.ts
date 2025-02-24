@@ -68,6 +68,7 @@ export async function release(
         {
           type: "confirm",
           name: "adjust",
+          default: false,
           message: `Current version (${currentVersionNumber}) is already newer than the last tag (${currentGitVersionNumber}). Change it again?`,
         },
       ]);

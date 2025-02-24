@@ -33,10 +33,12 @@ export const lintAndBuild = (packagePath: string): void => {
   let lintOutput = "";
   try {
     // Capture lint output; let eslint fail on lint errors
-    lintOutput = execSync(`cd ${packagePath} && yarn lint`, {
-      encoding: "utf8",
-      env: { ...process.env, FORCE_COLOR: "1" },
-    });
+    lintOutput = err.stdout ? err.stdout.toString() : err.message;
+    console.error(`\n${lintOutput}`);
+    console.error(
+      `Linting errors detected in ${packagePath}. Aborting release.`,
+    );
+    process.exit(1);
   } catch (err: any) {
     lintOutput = err.stdout ? err.stdout.toString() : err.message;
     console.error(`\n${lintOutput}`);
