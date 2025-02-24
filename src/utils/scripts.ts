@@ -37,11 +37,26 @@ export const lintAndBuild = (packagePath: string): void => {
       encoding: "utf8",
       env: { ...process.env, FORCE_COLOR: "1" },
     });
-  } catch (err: any) {
-    lintOutput = err.stdout ? err.stdout.toString() : err.message;
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "stdout" in error &&
+      error.stdout
+    ) {
+      lintOutput =
+        (error as { stdout?: string | Buffer }).stdout?.toString() ?? "";
+    } else if (error instanceof Error) {
+      lintOutput = error.message;
+    } else {
+      lintOutput = "Unknown linting error.";
+    }
+    // eslint-disable-next-line no-console
     console.error(`\n${lintOutput}`);
+    // eslint-disable-next-line no-console
     console.error(
-      `\x1b[31mLinting errors detected in ${packagePath}. Aborting release.\x1b[0m`,
+      `%c[Sovendus-Release-Tool][ERROR] Linting errors detected in ${packagePath}. Aborting release.`,
+      "color: red; font-size: larger;",
     );
 
     process.exit(1);
@@ -52,6 +67,6 @@ export const lintAndBuild = (packagePath: string): void => {
 
   // If there is any lint output (e.g. warnings), print it at the bottom
   if (lintOutput.trim().length > 0) {
-    console.log(`\n${lintOutput}`);
+    logger(`\n${lintOutput}`);
   }
 };

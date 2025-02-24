@@ -2,18 +2,20 @@ import { execSync } from "node:child_process";
 
 import inquirer from "inquirer";
 
+import { logger, loggerError } from "./logger.js";
+
 export async function runPreStartChecks(): Promise<void> {
   let statusOutput: string;
   try {
     statusOutput = execSync("git status --porcelain", { encoding: "utf8" });
   } catch (error) {
-    console.error("Error checking git status:", error);
+    loggerError("Error checking git status:", error);
     process.exit(1);
   }
 
   if (statusOutput.trim().length > 0) {
-    console.log("Uncommitted changes detected:");
-    console.log(statusOutput);
+    logger("Uncommitted changes detected:");
+    logger(statusOutput);
 
     const { action } = await inquirer.prompt([
       {
@@ -28,7 +30,7 @@ export async function runPreStartChecks(): Promise<void> {
     ]);
 
     if (action === "cancel") {
-      console.log("Release cancelled.");
+      logger("Release cancelled.");
       process.exit(1);
     } else {
       const { commitMessage } = await inquirer.prompt([
@@ -43,7 +45,7 @@ export async function runPreStartChecks(): Promise<void> {
         execSync("git add .", { stdio: "inherit" });
         execSync(`git commit -m "${commitMessage}"`, { stdio: "inherit" });
       } catch (error) {
-        console.error("Error during commit:", error);
+        loggerError("Error during commit:", error);
         process.exit(1);
       }
     }
@@ -53,7 +55,7 @@ export async function runPreStartChecks(): Promise<void> {
   try {
     execSync("git checkout main", { stdio: "inherit" });
   } catch (error) {
-    console.error("Error switching to main branch:", error);
+    loggerError("Error switching to main branch:", error);
     process.exit(1);
   }
 }

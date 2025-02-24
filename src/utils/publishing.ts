@@ -1,7 +1,7 @@
 export const publishPackage = (
-  packagePath: string,
-  newVersion: string,
-  tagPrefix: string,
+  _packagePath: string,
+  _newVersion: string,
+  _tagPrefix: string,
 ): void => {
   // execSync(`cd ${packagePath} && yarn publish`, { stdio: "inherit" });
   // try {
