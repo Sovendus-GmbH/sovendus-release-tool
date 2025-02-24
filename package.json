@@ -25,7 +25,7 @@
     "build": "vite build",
     "test": "echo 'Skipping tests for now' # vitest",
     "lint": "eslint . --fix",
-    "release": "deno run -A --unstable-sloppy-imports src/index.ts"
+    "pub": "deno run -A --unstable-sloppy-imports src/index.ts"
   },
   "dependencies": {
     "commander": "13.1.0",
