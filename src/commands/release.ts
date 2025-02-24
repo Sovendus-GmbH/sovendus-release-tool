@@ -1,6 +1,3 @@
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
-
 import inquirer from "inquirer";
 
 import type { ReleaseConfig } from "../types/index.js";
@@ -16,23 +13,11 @@ import {
   updateDependencyVersion,
   updatePackageVersion,
 } from "../utils/package-json.js";
+import { runPreStartChecks } from "../utils/pre-start-checks.js";
 import { publishPackage } from "../utils/publishing.js";
+import { DEFAULT_CONFIG_PATH, loadConfig } from "../utils/release-config.js";
 import { lintAndBuild, runTests } from "../utils/scripts.js";
 import { bumpVersion, compareVersions } from "../utils/versioning.js";
-
-const DEFAULT_CONFIG_PATH = "sov_release.config.ts";
-
-/**
- * Loads and returns the release configuration.
- */
-export async function loadConfig(
-  resolvedConfigPath: string,
-): Promise<ReleaseConfig> {
-  const module = (await import(`file://${resolvedConfigPath}`)) as {
-    default: ReleaseConfig;
-  };
-  return module.default;
-}
 
 /**
  * Runs the release process for packages defined in the config.
@@ -40,20 +25,9 @@ export async function loadConfig(
 export async function release(
   configPath: string = DEFAULT_CONFIG_PATH,
 ): Promise<void> {
-  logger(`Using config file: ${configPath}`);
-  const resolvedConfigPath = resolve(process.cwd(), configPath);
+  await runPreStartChecks();
 
-  if (!existsSync(resolvedConfigPath)) {
-    throw new Error(`Config file not found: ${resolvedConfigPath}`);
-  }
-
-  const config: ReleaseConfig = await loadConfig(resolvedConfigPath);
-
-  if (!config || !Array.isArray(config.packages)) {
-    throw new Error(
-      "Invalid config format. Ensure the config exports a default object with a 'packages' array.",
-    );
-  }
+  const config: ReleaseConfig = await loadConfig(configPath);
 
   let overallError = false;
   const affectedPackages: string[] = [];
