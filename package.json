@@ -4,7 +4,7 @@
   "description": "A CLI tool for managing package releases with version bumping and publishing.",
   "license": "GPL-3.0-only",
   "bin": {
-    "sovendus-release-tool": "dist/index.js"
+    "sovendus-release-tool": "dist/index.mjs"
   },
   "private": false,
   "type": "module",
