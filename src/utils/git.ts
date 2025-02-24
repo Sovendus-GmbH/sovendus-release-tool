@@ -34,7 +34,7 @@ export function createGitTag(tag: string): void {
       if (error.message.includes("nothing to commit")) {
         logger("No changes detected, skipping git commit.");
       } else {
-        throw error;
+        // throw error;
       }
     } else {
       // throw error;
