@@ -3,7 +3,7 @@ import { exec, execSync } from "node:child_process";
 
 import inquirer from "inquirer";
 
-import { loggerError } from "./logger.js";
+import { logger, loggerError } from "./logger.js";
 
 export function getLastVersionFromGitTag(tagPrefix: string): string {
   try {
@@ -27,7 +27,15 @@ export function getLastVersionFromGitTag(tagPrefix: string): string {
  * Creates a new Git tag and pushes commits and tags.
  */
 export function createGitTag(tag: string): void {
-  execSync(`git commit -am "Release: ${tag}"`, { stdio: "inherit" });
+  try {
+    execSync(`git commit -am "Release: ${tag}"`, { stdio: "inherit" });
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes("nothing to commit")) {
+      logger("No changes detected, skipping git commit.");
+    } else {
+      throw error;
+    }
+  }
   execSync(`git tag ${tag}`, { stdio: "inherit" });
   execSync("git push && git push --tags", { stdio: "inherit" });
 }
