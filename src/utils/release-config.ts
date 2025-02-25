@@ -2,7 +2,6 @@ import { existsSync, mkdirSync, renameSync, rmSync, unlinkSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
 import { build } from "vite";
-
 import type { ReleaseConfig } from "../types/index.js";
 import { logger, loggerError } from "./logger.js";
 

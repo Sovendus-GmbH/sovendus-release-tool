@@ -24,7 +24,14 @@ export default defineConfig({
         "inquirer",
         "node:child_process",
         "node:fs",
-        "node:path"
+        "node:path", 
+        "node:url",
+        "path",
+        "fs",
+        "url",
+        "child_process",
+        "fsevents",
+        "vite"
       ],
     },
   },
