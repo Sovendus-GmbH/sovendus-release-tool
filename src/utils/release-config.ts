@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, renameSync, rmSync, unlinkSync } from "node:fs";
+import { existsSync, mkdirSync, renameSync, unlinkSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
 import { build } from "vite";
@@ -13,8 +13,9 @@ async function getCompiledConfigPath(configPath: string): Promise<string> {
   const outputDir = dirname(configPath);
   const outputFilePath = join(outputDir, outputFileName);
   const outputTmpDir = join(outputDir, "tmp");
-  const outputFileTmpPath = join(outputTmpDir, outputFileName);
+  // const outputFileTmpPath = join(outputTmpDir, outputFileName);
 
+  // eslint-disable-next-line no-useless-catch
   try {
     // Ensure tmp dir exists
     if (!existsSync(outputTmpDir)) {
@@ -40,22 +41,22 @@ async function getCompiledConfigPath(configPath: string): Promise<string> {
       join(outputTmpDir, "sov_release.config.tmp.cjs"),
       outputFilePath,
     );
-    rmSync(outputTmpDir, { force: true, recursive: true });
+    // rmSync(outputTmpDir, { force: true, recursive: true });
     return outputFilePath;
   } catch (error) {
-    // Clean up in case of an error
-    try {
-      unlinkSync(outputFileTmpPath);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
-      /* empty */
-    }
-    try {
-      unlinkSync(outputFilePath);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
-      /* empty */
-    }
+    // // Clean up in case of an error
+    // try {
+    //   unlinkSync(outputFileTmpPath);
+    //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // } catch (_) {
+    //   /* empty */
+    // }
+    // try {
+    //   unlinkSync(outputFilePath);
+    //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // } catch (_) {
+    //   /* empty */
+    // }
     throw error;
   }
 }
