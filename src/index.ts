@@ -11,7 +11,7 @@ release()
     loggerError("Error during release process:", error);
   });
 
-export {
+export type {
   PackageJson,
   ReleaseConfig,
   ReleaseOptions,
