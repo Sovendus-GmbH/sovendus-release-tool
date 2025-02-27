@@ -89,7 +89,7 @@ const baseConfig = [
       "simple-import-sort/exports": "error",
       "unused-imports/no-unused-imports": "error",
       "prefer-template": "error",
-      "no-console": "warn",
+      "no-console": "error",
       "no-debugger": "error",
       "curly": "error",
       "eqeqeq": ["error", "always"],
