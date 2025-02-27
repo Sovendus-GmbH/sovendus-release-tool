@@ -38,9 +38,11 @@ export function createGitTag(tag: string, mainPackagePath: string): void {
     });
   } catch (error: unknown) {
     if (error instanceof Error) {
+      // Check if the error message contains "nothing to commit"
       if (error.message.includes("nothing to commit")) {
         logger("No changes detected, skipping git commit.");
       } else {
+        // For other errors, log and re-throw
         loggerError("Failed to commit changes.", error);
         throw error;
       }
@@ -48,6 +50,8 @@ export function createGitTag(tag: string, mainPackagePath: string): void {
       throw error;
     }
   }
+
+  // Continue with tagging and pushing
   execSync(`git tag ${tag}`, { stdio: "inherit", cwd: mainPackagePath });
   execSync("git push && git push --tags", {
     stdio: "inherit",
