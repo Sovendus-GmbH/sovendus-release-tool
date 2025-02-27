@@ -11,7 +11,7 @@ import { logger, loggerError } from "./logger.js";
  */
 export function updateDependencies(
   pkg: ReleasePackage,
-  packageManager: string, // Keep this parameter
+  _packageManager: string,
 ): void {
   const pkgPath = join(process.cwd(), pkg.directory);
   const packageJsonPath = join(pkgPath, "package.json");

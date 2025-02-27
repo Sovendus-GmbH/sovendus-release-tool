@@ -1,9 +1,9 @@
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import type { PackageJson } from "../types/index.js";
 import { logger } from "./logger.js";
-import { join } from "node:path";
 
 /**
  * Runs tests for the given package path.
@@ -35,20 +35,20 @@ export const lintAndBuild = (packagePath: string): void => {
   try {
     // Use the local eslint binary directly from node_modules
     const eslintPath = join(packagePath, "node_modules", ".bin", "eslint");
-    
+
     // Check if eslint exists and use it directly
     if (existsSync(eslintPath)) {
       lintOutput = execSync(`${eslintPath} --fix`, {
         encoding: "utf8",
         env: { ...process.env, FORCE_COLOR: "1" },
-        cwd: packagePath
+        cwd: packagePath,
       });
     } else {
       // Fall back to yarn lint if eslint binary not found
       lintOutput = execSync(`yarn lint`, {
         encoding: "utf8",
         env: { ...process.env, FORCE_COLOR: "1" },
-        cwd: packagePath
+        cwd: packagePath,
       });
     }
   } catch (error: unknown) {
