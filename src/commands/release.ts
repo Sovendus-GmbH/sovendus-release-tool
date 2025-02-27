@@ -29,7 +29,7 @@ export async function release(
 
   const config: ReleaseConfig = await loadConfig(configPath);
 
-  const packageManager = config.packageManager || "yarn"; 
+  const packageManager = config.packageManager || "yarn";
   logger(`Using package manager: ${packageManager}`);
 
   let overallError = false;
@@ -101,7 +101,7 @@ export async function release(
       // Update dependency version if flag enabled
       if (pkg.updateDeps) {
         logger(`Updating dependencies for ${pkg.directory}...`);
-        updateDependencies(pkg);
+        updateDependencies(pkg, packageManager);
       }
 
       // Only perform full release steps if the release flag is true
