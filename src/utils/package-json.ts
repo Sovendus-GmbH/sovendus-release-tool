@@ -8,19 +8,46 @@ import { logger } from "./logger.js";
  * Updates a dependency version in the package.json.
  * An optional requireFn can be provided for testing.
  */
-export function updateDependencyVersion(
-  dependency: string,
-  newVersion: string,
-): void {
-  const pkgPath = `${process.cwd()}/package.json`;
-  const packageJson = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
-  if (packageJson.dependencies && packageJson.dependencies[dependency]) {
-    packageJson.dependencies[dependency] = newVersion;
-    writeFileSync(
-      `${process.cwd()}/package.json`,
-      JSON.stringify(packageJson, null, 2),
+export function updateDependencies(pkg: ReleasePackage): void {
+  const pkgPath = join(process.cwd(), pkg.directory);
+  const packageJsonPath = join(pkgPath, "package.json");
+
+  if (!existsSync(packageJsonPath)) {
+    logger(`No package.json found in ${pkgPath}, skipping dependency updates.`);
+    return;
+  }
+
+  try {
+    // Read package.json to get ignore list if present
+    const packageJson = JSON.parse(
+      readFileSync(packageJsonPath, "utf8"),
+    ) as PackageJson;
+    const ignoreList = packageJson.updateIgnoreDependencies || [];
+
+    // Build ignore list arguments
+    const ignoreArg =
+      ignoreList.length > 0 ? `--reject ${ignoreList.join(",")}` : "";
+
+    logger(`Updating dependencies for ${pkg.directory}...`);
+
+    // Run npm-check-updates to find and update package.json
+    execSync(`npx npm-check-updates -u ${ignoreArg}`, {
+      cwd: pkgPath,
+      stdio: "inherit",
+    });
+
+    // Install updated dependencies with yarn
+    execSync("yarn install", {
+      cwd: pkgPath,
+      stdio: "inherit",
+    });
+
+    logger(`Successfully updated dependencies for ${pkg.directory}`);
+  } catch (error) {
+    logger(
+      `Error updating dependencies for ${pkg.directory}. Continuing with release process.`,
     );
-    logger(`Updated dependency ${dependency} to version ${newVersion}`);
+    console.error(error);
   }
 }
 /**

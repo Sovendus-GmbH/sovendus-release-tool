@@ -10,7 +10,7 @@ import {
 } from "../utils/git.js";
 import { logger, loggerError } from "../utils/logger.js";
 import {
-  updateDependencyVersion,
+  updateDependencies,
   updatePackageVersion,
 } from "../utils/package-json.js";
 import { runPreStartChecks } from "../utils/pre-start-checks.js";
@@ -98,10 +98,7 @@ export async function release(
       // Update dependency version if flag enabled
       if (pkg.updateDeps) {
         logger(`Updating dependencies for ${pkg.directory}...`);
-        updateDependencyVersion(
-          "sovendus-integration-types",
-          finalVersionNumber,
-        );
+        updateDependencies(pkg);
       }
 
       // Only perform full release steps if the release flag is true
