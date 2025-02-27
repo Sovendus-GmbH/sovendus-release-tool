@@ -30,6 +30,7 @@ export function runTests(packagePath: string): void {
 }
 
 export const lintAndBuild = (packagePath: string): void => {
+  console.log(`reeeeeLinting and building ${packagePath}...`);
   let lintOutput = "";
   try {
     // Capture lint output; let eslint fail on lint errors
