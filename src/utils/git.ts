@@ -5,10 +5,14 @@ import inquirer from "inquirer";
 
 import { logger, loggerError } from "./logger.js";
 
-export function getLastVersionFromGitTag(tagPrefix: string): string {
+export function getLastVersionFromGitTag(
+  tagPrefix: string,
+  mainPackagePath: string,
+): string {
   try {
     const lastGitTag = execSync(
       `git describe --tags --abbrev=0 --match="${tagPrefix}*"`,
+      { cwd: mainPackagePath },
     )
       .toString()
       .trim();
@@ -26,9 +30,12 @@ export function getLastVersionFromGitTag(tagPrefix: string): string {
 /**
  * Creates a new Git tag and pushes commits and tags.
  */
-export function createGitTag(tag: string): void {
+export function createGitTag(tag: string, mainPackagePath: string): void {
   try {
-    execSync(`git commit -am "Release: ${tag}"`, { stdio: "inherit" });
+    execSync(`git commit -am "Release: ${tag}"`, {
+      stdio: "inherit",
+      cwd: mainPackagePath,
+    });
   } catch (error: unknown) {
     if (error instanceof Error) {
       if (error.message.includes("nothing to commit")) {
@@ -41,8 +48,11 @@ export function createGitTag(tag: string): void {
       throw error;
     }
   }
-  execSync(`git tag ${tag}`, { stdio: "inherit" });
-  execSync("git push && git push --tags", { stdio: "inherit" });
+  execSync(`git tag ${tag}`, { stdio: "inherit", cwd: mainPackagePath });
+  execSync("git push && git push --tags", {
+    stdio: "inherit",
+    cwd: mainPackagePath,
+  });
 }
 
 export function checkTagExists(tag: string): Promise<boolean> {
@@ -59,9 +69,13 @@ export function checkTagExists(tag: string): Promise<boolean> {
   });
 }
 
-export function hasNewCommitsSinceTag(tag: string): boolean {
+export function hasNewCommitsSinceTag(
+  tag: string,
+  mainPackagePath: string,
+): boolean {
   const logOutput = execSync(`git log ${tag}..HEAD --oneline || true`, {
     encoding: "utf8",
+    cwd: mainPackagePath,
   });
   return logOutput.trim().length > 0;
 }
@@ -103,7 +117,9 @@ export async function ensureMainBranch(): Promise<void> {
 
       if (shouldSwitch === "switch") {
         try {
-          execSync("git checkout main", { stdio: "inherit" });
+          execSync("git checkout main", {
+            stdio: "inherit",
+          });
           logger("Switched to the main branch.");
         } catch (error) {
           loggerError("Error switching to main branch:", error);
@@ -154,7 +170,9 @@ export async function ensureMainBranch(): Promise<void> {
 export async function handleUncommittedChanges(): Promise<void> {
   let statusOutput: string;
   try {
-    statusOutput = execSync("git status --porcelain", { encoding: "utf8" });
+    statusOutput = execSync("git status --porcelain", {
+      encoding: "utf8",
+    });
   } catch (error) {
     loggerError("Error checking git status:", error);
     process.exit(1);
@@ -172,6 +190,7 @@ export async function handleUncommittedChanges(): Promise<void> {
         choices: [
           { name: "Stage all and commit", value: "commit" },
           { name: "Cancel release", value: "cancel" },
+          { name: "Continue anyway", value: "continue" },
         ],
       },
     ]);
@@ -179,6 +198,10 @@ export async function handleUncommittedChanges(): Promise<void> {
     if (action === "cancel") {
       logger("Release cancelled.");
       process.exit(1);
+    } else if (action === "continue") {
+      logger(
+        "Continuing with the release process despite uncommitted changes.",
+      );
     } else {
       const { commitMessage } = await inquirer.prompt([
         {
@@ -190,7 +213,9 @@ export async function handleUncommittedChanges(): Promise<void> {
 
       try {
         execSync("git add .", { stdio: "inherit" });
-        execSync(`git commit -m "${commitMessage}"`, { stdio: "inherit" });
+        execSync(`git commit -m "${commitMessage}"`, {
+          stdio: "inherit",
+        });
       } catch (error) {
         loggerError("Error during commit:", error);
         process.exit(1);

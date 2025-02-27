@@ -9,10 +9,12 @@ import { logger, loggerError } from "./logger.js";
  * Updates a dependency version in the package.json.
  * An optional requireFn can be provided for testing.
  */
-export function updateDependencies(pkg: ReleasePackage, packageManager: string): void {
+export function updateDependencies(
+  pkg: ReleasePackage,
+  packageManager: string, // Keep this parameter
+): void {
   const pkgPath = join(process.cwd(), pkg.directory);
   const packageJsonPath = join(pkgPath, "package.json");
-
   if (!existsSync(packageJsonPath)) {
     logger(`No package.json found in ${pkgPath}, skipping dependency updates.`);
     return;
@@ -29,19 +31,22 @@ export function updateDependencies(pkg: ReleasePackage, packageManager: string):
     const ignoreArg =
       ignoreList.length > 0 ? `--reject ${ignoreList.join(",")}` : "";
 
-    logger(`Updating dependencies for ${pkg.directory}...`);
+    logger(`Updating dependencies for ${pkg.directory}`);
 
     // Run npm-check-updates to find and update package.json
-    execSync(`npx npm-check-updates -u ${ignoreArg}`, {
+    execSync(`ncu -u ${ignoreArg}`, {
       cwd: pkgPath,
       stdio: "inherit",
     });
 
-    // Install updated dependencies with yarn
-    execSync(packageManager+" install", {
-      cwd: pkgPath,
-      stdio: "inherit",
-    });
+    // // Install dependencies with the correct path setup
+    // execSync(`${packageManager} install --ignore-scripts`, {
+    //   cwd: pkgPath,
+    //   stdio: "inherit",
+    //   env: {
+    //     ...process.env,
+    //   },
+    // });
 
     logger(`Successfully updated dependencies for ${pkg.directory}`);
   } catch (error) {
@@ -52,13 +57,13 @@ export function updateDependencies(pkg: ReleasePackage, packageManager: string):
     throw error;
   }
 }
+
 /**
  * Updates the version in the package.json file and also in sov_release.config.ts.
  */
 export function updatePackageVersion(
   pkg: ReleasePackage,
   newVersion: string,
-  packageManager: string,
 ): void {
   // Update package's package.json
   const pkgPath = join(process.cwd(), pkg.directory, "package.json");

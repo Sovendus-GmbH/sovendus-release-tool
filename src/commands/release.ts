@@ -38,14 +38,17 @@ export async function release(
 
   for (const pkg of config.packages) {
     const tagPrefix = pkg.releaseOptions?.tagPrefix || "";
-    const currentGitVersionNumber = getLastVersionFromGitTag(tagPrefix);
+    const currentGitVersionNumber = getLastVersionFromGitTag(
+      tagPrefix,
+      pkg.directory,
+    );
     const currentVersionNumber = (config.globalVersion ||
       pkg.version) as string;
 
     const lastTag = `${tagPrefix}${currentGitVersionNumber}`;
     logger(`Processing ${pkg.directory}...`);
 
-    if (!hasNewCommitsSinceTag(lastTag)) {
+    if (!hasNewCommitsSinceTag(lastTag, pkg.directory)) {
       logger(`No new commits since ${lastTag}, skipping version bump.`);
       continue;
     }
@@ -84,7 +87,7 @@ export async function release(
       }
     }
 
-    updatePackageVersion(pkg, finalVersionNumber, packageManager);
+    updatePackageVersion(pkg, finalVersionNumber);
 
     const newTag = `${tagPrefix}${finalVersionNumber}`;
     logger(`Processing tag (${newTag}) for dir ${pkg.directory}...`);
@@ -110,7 +113,7 @@ export async function release(
         lintAndBuild(process.cwd());
         runTests(process.cwd());
         publishPackage(process.cwd(), finalVersionNumber, tagPrefix);
-        createGitTag(newTag);
+        createGitTag(newTag, pkg.directory);
       } else {
         logger(
           `Skipping release steps for ${pkg.directory} as release flag is false.`,

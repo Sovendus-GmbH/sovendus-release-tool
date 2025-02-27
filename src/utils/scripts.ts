@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 
 import type { PackageJson } from "../types/index.js";
 import { logger } from "./logger.js";
+import { join } from "node:path";
 
 /**
  * Runs tests for the given package path.
@@ -23,21 +24,33 @@ export function runTests(packagePath: string): void {
   }
 
   try {
-    execSync(`cd ${packagePath} && yarn test`, { stdio: "inherit" });
+    execSync(`yarn test`, { stdio: "inherit", cwd: packagePath });
   } catch {
     throw new Error(`Tests failed in ${packagePath}`);
   }
 }
 
 export const lintAndBuild = (packagePath: string): void => {
-  console.log(`reeeeeLinting and building ${packagePath}...`);
   let lintOutput = "";
   try {
-    // Capture lint output; let eslint fail on lint errors
-    lintOutput = execSync(`cd ${packagePath} && yarn lint`, {
-      encoding: "utf8",
-      env: { ...process.env, FORCE_COLOR: "1" },
-    });
+    // Use the local eslint binary directly from node_modules
+    const eslintPath = join(packagePath, "node_modules", ".bin", "eslint");
+    
+    // Check if eslint exists and use it directly
+    if (existsSync(eslintPath)) {
+      lintOutput = execSync(`${eslintPath} --fix`, {
+        encoding: "utf8",
+        env: { ...process.env, FORCE_COLOR: "1" },
+        cwd: packagePath
+      });
+    } else {
+      // Fall back to yarn lint if eslint binary not found
+      lintOutput = execSync(`yarn lint`, {
+        encoding: "utf8",
+        env: { ...process.env, FORCE_COLOR: "1" },
+        cwd: packagePath
+      });
+    }
   } catch (error: unknown) {
     if (
       typeof error === "object" &&
@@ -64,7 +77,7 @@ export const lintAndBuild = (packagePath: string): void => {
   }
 
   // Run the build command (output directly to the terminal)
-  execSync(`cd ${packagePath} && yarn build`, { stdio: "inherit" });
+  execSync(`yarn build`, { stdio: "inherit", cwd: packagePath });
 
   // If there is any lint output (e.g. warnings), print it at the bottom
   if (lintOutput.trim().length > 0) {
