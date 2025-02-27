@@ -1,8 +1,9 @@
+import { execSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type { PackageJson, ReleasePackage } from "../types/index.js";
-import { logger } from "./logger.js";
+import { logger, loggerError } from "./logger.js";
 
 /**
  * Updates a dependency version in the package.json.
@@ -44,10 +45,11 @@ export function updateDependencies(pkg: ReleasePackage): void {
 
     logger(`Successfully updated dependencies for ${pkg.directory}`);
   } catch (error) {
-    logger(
+    loggerError(
       `Error updating dependencies for ${pkg.directory}. Continuing with release process.`,
+      error,
     );
-    console.error(error);
+    throw error;
   }
 }
 /**
