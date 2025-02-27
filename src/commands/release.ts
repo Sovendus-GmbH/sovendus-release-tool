@@ -29,6 +29,9 @@ export async function release(
 
   const config: ReleaseConfig = await loadConfig(configPath);
 
+  const packageManager = config.packageManager || "yarn"; 
+  logger(`Using package manager: ${packageManager}`);
+
   let overallError = false;
   const affectedPackages: string[] = [];
   const originalCwd = process.cwd();
@@ -81,7 +84,7 @@ export async function release(
       }
     }
 
-    updatePackageVersion(pkg, finalVersionNumber);
+    updatePackageVersion(pkg, finalVersionNumber, packageManager);
 
     const newTag = `${tagPrefix}${finalVersionNumber}`;
     logger(`Processing tag (${newTag}) for dir ${pkg.directory}...`);

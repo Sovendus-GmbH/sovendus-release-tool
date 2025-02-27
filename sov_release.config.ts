@@ -1,6 +1,7 @@
 import type { ReleaseConfig } from "./src/types/index.js";
 
 const releaseConfig: ReleaseConfig = {
+  packageManager: "yarn",
   packages: [
     {
       directory: "./",

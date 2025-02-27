@@ -9,7 +9,7 @@ import { logger, loggerError } from "./logger.js";
  * Updates a dependency version in the package.json.
  * An optional requireFn can be provided for testing.
  */
-export function updateDependencies(pkg: ReleasePackage): void {
+export function updateDependencies(pkg: ReleasePackage, packageManager: string): void {
   const pkgPath = join(process.cwd(), pkg.directory);
   const packageJsonPath = join(pkgPath, "package.json");
 
@@ -38,7 +38,7 @@ export function updateDependencies(pkg: ReleasePackage): void {
     });
 
     // Install updated dependencies with yarn
-    execSync("yarn install", {
+    execSync(packageManager+" install", {
       cwd: pkgPath,
       stdio: "inherit",
     });
@@ -58,6 +58,7 @@ export function updateDependencies(pkg: ReleasePackage): void {
 export function updatePackageVersion(
   pkg: ReleasePackage,
   newVersion: string,
+  packageManager: string,
 ): void {
   // Update package's package.json
   const pkgPath = join(process.cwd(), pkg.directory, "package.json");

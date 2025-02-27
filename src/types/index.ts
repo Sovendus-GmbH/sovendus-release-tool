@@ -8,6 +8,7 @@ export interface PackageJson {
 }
 
 export interface ReleaseConfig {
+  packageManager?: "npm" | "yarn" | "pnpm" | "deno";
   packages: ReleasePackage[];
   globalVersion?: string;
 }
