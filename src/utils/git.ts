@@ -93,7 +93,7 @@ export async function promptVersionIncrement(): Promise<
         type: "list",
         name: "increment",
         message: "Choose the next version increment:",
-        choices: ["major", "minor", "patch"],
+        choices: ["patch", "minor", "major"],
       },
     ]);
   return answers.increment;
