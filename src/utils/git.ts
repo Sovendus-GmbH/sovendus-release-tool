@@ -31,27 +31,6 @@ export function getLastVersionFromGitTag(
  * Creates a new Git tag and pushes commits and tags.
  */
 export function createGitTag(tag: string, mainPackagePath: string): void {
-  try {
-    execSync(`git commit -am "Release: ${tag}"`, {
-      stdio: "inherit",
-      cwd: mainPackagePath,
-    });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      // Check if the error message contains "nothing to commit"
-      if (error.message.includes("nothing to commit")) {
-        logger("No changes detected, skipping git commit.");
-      } else {
-        // For other errors, log and re-throw
-        loggerError("Failed to commit changes.", error);
-        throw error;
-      }
-    } else {
-      throw error;
-    }
-  }
-
-  // Continue with tagging and pushing
   execSync(`git tag ${tag}`, { stdio: "inherit", cwd: mainPackagePath });
   execSync("git push && git push --tags", {
     stdio: "inherit",

@@ -23,8 +23,6 @@ export async function publishPackage({
     logger(`Skipping ${packageJson.name}: tag ${newTag} already exists.`);
     return;
   }
-  // Change to package directory
-  process.chdir(pkg.directory);
 
   logger(`Releasing ${packageJson.name}...`);
   createGitTag(newTag, pkg.directory);

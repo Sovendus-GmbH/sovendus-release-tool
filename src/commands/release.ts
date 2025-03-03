@@ -29,6 +29,7 @@ export async function release(
   const originalCwd = process.cwd();
 
   for (const pkg of config.packages) {
+    process.chdir(pkg.directory);
     const packageJson = getPackageJson(pkg);
     try {
       if (pkg.updateDeps) {
