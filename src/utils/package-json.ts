@@ -6,6 +6,17 @@ import type { PackageJson, ReleasePackage } from "../types/index.js";
 import { logger, loggerError } from "./logger.js";
 
 /**
+ * Reads the package.json file for a package and returns its contents.
+ */
+export function getPackageJson(pkg: ReleasePackage): PackageJson {
+  const packageJsonPath = join(process.cwd(), pkg.directory, "package.json");
+  if (!existsSync(packageJsonPath)) {
+    throw new Error(`No package.json found in ${packageJsonPath}`);
+  }
+  return JSON.parse(readFileSync(packageJsonPath, "utf8")) as PackageJson;
+}
+
+/**
  * Updates a dependency version in the package.json.
  * An optional requireFn can be provided for testing.
  */
@@ -13,18 +24,9 @@ export function updateDependencies(
   pkg: ReleasePackage,
   _packageManager: string,
 ): void {
-  const pkgPath = join(process.cwd(), pkg.directory);
-  const packageJsonPath = join(pkgPath, "package.json");
-  if (!existsSync(packageJsonPath)) {
-    logger(`No package.json found in ${pkgPath}, skipping dependency updates.`);
-    return;
-  }
-
+  const packageJson = getPackageJson(pkg);
   try {
     // Read package.json to get ignore list if present
-    const packageJson = JSON.parse(
-      readFileSync(packageJsonPath, "utf8"),
-    ) as PackageJson;
     const ignoreList = packageJson.updateIgnoreDependencies || [];
 
     // Build ignore list arguments
@@ -32,13 +34,14 @@ export function updateDependencies(
       ignoreList.length > 0 ? `--reject ${ignoreList.join(",")}` : "";
 
     logger(`Updating dependencies for ${pkg.directory}`);
-
+    const pkgPath = join(process.cwd(), pkg.directory);
     // Run npm-check-updates to find and update package.json
     execSync(`ncu -u ${ignoreArg}`, {
       cwd: pkgPath,
       stdio: "inherit",
     });
 
+    // TODO causes the node_modules to be destroyed
     // // Install dependencies with the correct path setup
     // execSync(`${packageManager} install --ignore-scripts`, {
     //   cwd: pkgPath,

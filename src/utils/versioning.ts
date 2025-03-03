@@ -1,3 +1,74 @@
+import { readFileSync } from "node:fs";
+
+import inquirer from "inquirer";
+
+import type {
+  PackageJson,
+  ReleaseConfig,
+  ReleasePackage,
+} from "../types/index.js";
+import { getLastVersionFromGitTag, promptVersionIncrement } from "./git.js";
+import { logger } from "./logger.js";
+
+interface VersionInfo {
+  newVersion: string;
+  lastTag: string;
+  newTag: string;
+}
+
+export async function getVersion(
+  pkg: ReleasePackage,
+  packageJson: PackageJson,
+  config: ReleaseConfig,
+): Promise<VersionInfo> {
+  const tagPrefix = pkg.releaseOptions?.tagPrefix || "";
+  const currentGitVersionNumber = getLastVersionFromGitTag(
+    tagPrefix,
+    pkg.directory,
+  );
+  const currentVersionNumber = (config.globalVersion || pkg.version) as string;
+
+  const lastTag = `${tagPrefix}${currentGitVersionNumber}`;
+  logger(`Processing ${packageJson.name}...`);
+
+  let finalVersionNumber: string;
+  if (!currentVersionNumber) {
+    logger(
+      `No version specified in config, using last git version if available: ${currentGitVersionNumber}`,
+    );
+    finalVersionNumber = currentGitVersionNumber;
+  } else {
+    finalVersionNumber = currentVersionNumber;
+  }
+
+  const lastTagVersionIsOlder =
+    compareVersions(currentVersionNumber, currentGitVersionNumber) > 0;
+
+  if (!lastTagVersionIsOlder) {
+    const increment = await promptVersionIncrement();
+    finalVersionNumber = bumpVersion(currentGitVersionNumber, increment);
+  } else {
+    const { adjust } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "adjust",
+        default: false,
+        message: `Current version (${currentVersionNumber}) is already newer than the last tag (${currentGitVersionNumber}). Change it again?`,
+      },
+    ]);
+    if (adjust) {
+      const incrementOverride = await promptVersionIncrement();
+      finalVersionNumber = bumpVersion(
+        currentGitVersionNumber,
+        incrementOverride,
+      );
+    }
+  }
+  const newTag = `${tagPrefix}${finalVersionNumber}`;
+
+  return { newVersion: finalVersionNumber, lastTag, newTag };
+}
+
 export function compareVersions(a: string, b: string): number {
   const [ma, mi, pa] = a.split(".").map(Number);
   const [mb, mm, pb] = b.split(".").map(Number);
@@ -35,4 +106,29 @@ export function bumpVersion(
   }
 
   return versionParts.join(".");
+}
+
+export function updateVariableStringValue(
+  pkg: ReleasePackage,
+  newVersion: string,
+): void {
+  pkg.versionBumper?.jsVars.forEach((fileInfo) => {
+    const fileContent = readFileSync(fileInfo.filePath, "utf8");
+
+    // Only match const variableName = "value" pattern
+    const constRegex = new RegExp(
+      `(const\\s+${fileInfo.varName}\\s*=\\s*["'])([^"']*)(["'])`,
+      "g",
+    );
+
+    // Try to match and replace the const pattern
+    const updatedContent = fileContent.replace(constRegex, `$1${newVersion}$3`);
+
+    // If no changes were made, the variable wasn't found or isn't in the expected format
+    if (updatedContent === fileContent) {
+      throw new Error(
+        `Could not find a matching const declaration for '${fileInfo.varName}' in '${fileInfo.filePath}' or the format is not supported. Only simple one-line string constants are supported.`,
+      );
+    }
+  });
 }

@@ -1,26 +1,31 @@
-export const publishPackage = (
-  _packagePath: string,
-  _newVersion: string,
-  _tagPrefix: string,
-): void => {
-  // execSync(`cd ${packagePath} && yarn publish`, { stdio: "inherit" });
-  // try {
-  //   execSync(`cd ${packagePath} && git commit -am "Release ${newVersion}"`, {
-  //     stdio: "inherit",
-  //   });
-  // } catch (err) {
-  //   const errorOutput = (err as Error).toString();
-  //   if (errorOutput.includes("nothing to commit")) {
-  //     logger("No changes detected, skipping git commit.");
-  //   } else {
-  //     throw err;
-  //   }
-  // }
-  // execSync(`cd ${packagePath} && git tag ${tagPrefix}${newVersion}`, {
-  //   stdio: "inherit",
-  // });
-  // execSync(
-  //   `cd ${packagePath} && git push && git push origin ${tagPrefix}${newVersion}`,
-  //   { stdio: "inherit" },
-  // );
-};
+import type { PackageJson, ReleasePackage } from "../types/index.js";
+import { checkTagExists, createGitTag, hasNewCommitsSinceTag } from "./git.js";
+import { logger } from "./logger.js";
+
+export async function publishPackage({
+  newTag,
+  lastTag,
+  packageJson,
+  pkg,
+}: {
+  newTag: string;
+  lastTag: string;
+  packageJson: PackageJson;
+  pkg: ReleasePackage;
+}): Promise<void> {
+  logger(`Processing tag release (${newTag}) for ${packageJson.name}...`);
+
+  if (!hasNewCommitsSinceTag(lastTag, pkg.directory)) {
+    logger(`No new commits since ${lastTag}, skipping lelease.`);
+    return;
+  }
+  if (await checkTagExists(newTag)) {
+    logger(`Skipping ${packageJson.name}: tag ${newTag} already exists.`);
+    return;
+  }
+  // Change to package directory
+  process.chdir(pkg.directory);
+
+  logger(`Releasing ${packageJson.name}...`);
+  createGitTag(newTag, pkg.directory);
+}

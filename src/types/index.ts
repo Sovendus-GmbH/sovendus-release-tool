@@ -1,4 +1,5 @@
 export interface PackageJson {
+  name: string;
   version: string;
   scripts?: { [key: string]: string };
   dependencies?: { [key: string]: string };
@@ -16,9 +17,17 @@ export interface ReleaseConfig {
 export interface ReleasePackage {
   directory: string;
   version?: string;
+  updateDeps: boolean;
+  lintAndBuild: boolean;
+  test: boolean;
+  versionBumper?: {
+    jsVars: {
+      filePath: string;
+      varName: string;
+    }[];
+  };
   release: boolean;
   releaseOptions?: ReleaseOptions;
-  updateDeps: boolean;
 }
 
 export interface ReleaseOptions {
