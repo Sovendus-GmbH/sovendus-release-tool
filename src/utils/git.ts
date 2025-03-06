@@ -31,16 +31,19 @@ export function getLastVersionFromGitTag(
  * Creates a new Git tag and pushes commits and tags.
  */
 export function createGitTag(tag: string, mainPackagePath: string): void {
+  let hasCommitted = false;
+
   try {
     execSync(`git commit -am "Release: ${tag}"`, {
       stdio: "inherit",
       cwd: mainPackagePath,
     });
+    hasCommitted = true;
   } catch (error: unknown) {
     if (error instanceof Error) {
       // Check if the error message contains "nothing to commit"
       if (error.message.includes("nothing to commit")) {
-        logger("No changes detected, skipping git commit.");
+        logger("No changes detected, continuing with tag creation.");
       } else {
         // For other errors, log and re-throw
         loggerError("Failed to commit changes.", error);
@@ -53,10 +56,19 @@ export function createGitTag(tag: string, mainPackagePath: string): void {
 
   // Continue with tagging and pushing
   execSync(`git tag ${tag}`, { stdio: "inherit", cwd: mainPackagePath });
-  execSync("git push && git push --tags", {
-    stdio: "inherit",
-    cwd: mainPackagePath,
-  });
+  // Push commits only if we made any
+  if (hasCommitted) {
+    execSync("git push && git push --tags", {
+      stdio: "inherit",
+      cwd: mainPackagePath,
+    });
+  } else {
+    // Only push the tags if there were no commits
+    execSync("git push --tags", {
+      stdio: "inherit",
+      cwd: mainPackagePath,
+    });
+  }
 }
 
 export function checkTagExists(tag: string): Promise<boolean> {

@@ -21,14 +21,14 @@ export async function publishPackage({
   pkg: ReleasePackage;
 }): Promise<void> {
   logger(`Processing tag release (${newTag}) for ${packageJson.name}...`);
+  if (await checkTagExists(newTag)) {
+    logger(`Skipping ${packageJson.name}: tag ${newTag} already exists.`);
+    return;
+  }
   await ensureMainBranch();
 
   if (!hasNewCommitsSinceTag(lastTag, pkg.directory)) {
     logger(`No new commits since ${lastTag}, skipping release.`);
-    return;
-  }
-  if (await checkTagExists(newTag)) {
-    logger(`Skipping ${packageJson.name}: tag ${newTag} already exists.`);
     return;
   }
 
