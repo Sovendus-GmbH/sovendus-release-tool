@@ -70,8 +70,13 @@ export async function getVersion(
 }
 
 export function compareVersions(a: string, b: string): number {
-  const [ma, mi, pa] = a.split(".").map(Number);
-  const [mb, mm, pb] = b.split(".").map(Number);
+  const aParts = a.split(".").map(Number);
+  const bParts = b.split(".").map(Number);
+
+  // Destructure with default values of 0 for any missing parts
+  const [ma = 0, mi = 0, pa = 0] = aParts;
+  const [mb = 0, mm = 0, pb = 0] = bParts;
+
   if (ma !== mb) {
     return ma - mb;
   }
