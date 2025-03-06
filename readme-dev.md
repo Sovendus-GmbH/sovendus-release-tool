@@ -36,6 +36,5 @@ yarn test
 5. If you have access to the repository, you can publish a new version by running:
 
     ```bash
-    # make sure you have deno installed
     yarn pub
     ```

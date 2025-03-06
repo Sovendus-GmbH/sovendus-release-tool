@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 import inquirer from "inquirer";
 
@@ -114,21 +114,40 @@ export function updateVariableStringValue(
 ): void {
   pkg.versionBumper?.jsVars.forEach((fileInfo) => {
     const fileContent = readFileSync(fileInfo.filePath, "utf8");
+    let updatedContent = fileContent;
 
-    // Only match const variableName = "value" pattern
-    const constRegex = new RegExp(
-      `(const\\s+${fileInfo.varName}\\s*=\\s*["'])([^"']*)(["'])`,
-      "g",
-    );
+    // Check file extension to determine which regex pattern to use
+    const isPhpFile = fileInfo.filePath.toLowerCase().endsWith(".php");
 
-    // Try to match and replace the const pattern
-    const updatedContent = fileContent.replace(constRegex, `$1${newVersion}$3`);
+    if (isPhpFile) {
+      // Match PHP define('CONSTANT_NAME', 'value') pattern
+      const phpDefineRegex = new RegExp(
+        `(define\\s*\\(\\s*["']${fileInfo.varName}["']\\s*,\\s*["'])([^"']*)(["'])`,
+        "g",
+      );
+      updatedContent = fileContent.replace(phpDefineRegex, `$1${newVersion}$3`);
+    } else {
+      // Only match const variableName = "value" pattern for JS/TS
+      const constRegex = new RegExp(
+        `(const\\s+${fileInfo.varName}\\s*=\\s*["'])([^"']*)(["'])`,
+        "g",
+      );
+      updatedContent = fileContent.replace(constRegex, `$1${newVersion}$3`);
+    }
 
     // If no changes were made, the variable wasn't found or isn't in the expected format
     if (updatedContent === fileContent) {
+      const formatDescription = isPhpFile
+        ? "define('CONSTANT_NAME', 'value')"
+        : "const variableName = 'value'";
+
       throw new Error(
-        `Could not find a matching const declaration for '${fileInfo.varName}' in '${fileInfo.filePath}' or the format is not supported. Only simple one-line string constants are supported.`,
+        `Could not find a matching declaration for '${fileInfo.varName}' in '${fileInfo.filePath}' or the format is not supported. Only ${formatDescription} format is supported.`,
       );
     }
+
+    // Write the updated content back to the file
+    writeFileSync(fileInfo.filePath, updatedContent);
+    logger(`Updated version in ${fileInfo.filePath} to ${newVersion}`);
   });
 }

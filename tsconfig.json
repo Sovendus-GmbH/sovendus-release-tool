@@ -3,15 +3,50 @@
     "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "nodenext",
-    "types": ["node"],
-    "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "outDir": "dist",
+    "rootDir": "./",
+    "noEmitOnError": true,
+    "removeComments": true,
+    "allowJs": false,
+    "checkJs": false,
+    "esModuleInterop": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "useUnknownInCatchVariables": true,
+    "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "rootDir": "./"
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noImplicitUseStrict": false,
+    "suppressExcessPropertyErrors": false,
+    "suppressImplicitAnyIndexErrors": false,
+    "noStrictGenericChecks": false,
+    "declaration": true,
+    "declarationMap": true
   },
-  "include": ["src/**/*.ts", "test-files/**/*.ts", "sov_release.config.ts"],
-  "exclude": ["node_modules"]
-
+  "include": [
+    "src/**/*.ts",
+    "test-files/**/*.ts",
+    "sov_release.config.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
