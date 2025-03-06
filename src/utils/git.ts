@@ -34,41 +34,52 @@ export function createGitTag(tag: string, mainPackagePath: string): void {
   let hasCommitted = false;
 
   try {
-    execSync(`git commit -am "Release: ${tag}"`, {
-      stdio: "inherit",
+    // Check if there are changes to commit first
+    const statusOutput = execSync("git status --porcelain", {
+      encoding: "utf8",
       cwd: mainPackagePath,
-    });
-    hasCommitted = true;
-  } catch (error: unknown) {
-    // Check if the error is due to nothing to commit
-    if (
-      error instanceof Error &&
-      (error.message.includes("nothing to commit") ||
-        error.message.includes("working tree clean"))
-    ) {
-      logger("No changes detected, continuing with tag creation.");
+    }).trim();
+
+    // Only attempt to commit if there are changes
+    if (statusOutput.length > 0) {
+      execSync(`git commit -am "Release: ${tag}"`, {
+        stdio: "inherit",
+        cwd: mainPackagePath,
+      });
+      hasCommitted = true;
+      logger("Changes committed successfully.");
     } else {
-      // For other errors, log and re-throw
-      loggerError("Failed to commit changes.", error);
-      throw error;
+      logger("No changes detected, continuing with tag creation.");
     }
+  } catch (error: unknown) {
+    // For commit errors (not status check errors)
+    loggerError("Failed to commit changes.", error);
+    throw error;
   }
 
   // Continue with tagging and pushing
-  execSync(`git tag ${tag}`, { stdio: "inherit", cwd: mainPackagePath });
+  try {
+    execSync(`git tag ${tag}`, { stdio: "inherit", cwd: mainPackagePath });
+    logger(`Created tag: ${tag}`);
 
-  // Push commits only if we made any
-  if (hasCommitted) {
-    execSync("git push && git push --tags", {
-      stdio: "inherit",
-      cwd: mainPackagePath,
-    });
-  } else {
-    // Only push the tags if there were no commits
-    execSync("git push --tags", {
-      stdio: "inherit",
-      cwd: mainPackagePath,
-    });
+    // Push commits only if we made any
+    if (hasCommitted) {
+      execSync("git push && git push --tags", {
+        stdio: "inherit",
+        cwd: mainPackagePath,
+      });
+      logger("Pushed commits and tags to remote.");
+    } else {
+      // Only push the tags if there were no commits
+      execSync("git push --tags", {
+        stdio: "inherit",
+        cwd: mainPackagePath,
+      });
+      logger("Pushed tags to remote.");
+    }
+  } catch (error: unknown) {
+    loggerError("Failed during tag operations.", error);
+    throw error;
   }
 }
 
