@@ -40,22 +40,23 @@ export function createGitTag(tag: string, mainPackagePath: string): void {
     });
     hasCommitted = true;
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      // Check if the error message contains "nothing to commit"
-      if (error.message.includes("nothing to commit")) {
-        logger("No changes detected, continuing with tag creation.");
-      } else {
-        // For other errors, log and re-throw
-        loggerError("Failed to commit changes.", error);
-        throw error;
-      }
+    // Check if the error is due to nothing to commit
+    if (
+      error instanceof Error &&
+      (error.message.includes("nothing to commit") ||
+        error.message.includes("working tree clean"))
+    ) {
+      logger("No changes detected, continuing with tag creation.");
     } else {
+      // For other errors, log and re-throw
+      loggerError("Failed to commit changes.", error);
       throw error;
     }
   }
 
   // Continue with tagging and pushing
   execSync(`git tag ${tag}`, { stdio: "inherit", cwd: mainPackagePath });
+
   // Push commits only if we made any
   if (hasCommitted) {
     execSync("git push && git push --tags", {
