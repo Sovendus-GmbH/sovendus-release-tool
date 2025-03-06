@@ -2,6 +2,8 @@ import { execSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+import inquirer from "inquirer";
+
 import type { PackageJson, ReleasePackage } from "../types/index.js";
 import { logger, loggerError } from "./logger.js";
 
@@ -20,13 +22,26 @@ export function getPackageJson(pkg: ReleasePackage): PackageJson {
  * Updates a dependency version in the package.json.
  * An optional requireFn can be provided for testing.
  */
-export function updateDependencies(
+export async function updateDependencies(
   pkg: ReleasePackage,
   _packageManager: string,
-): void {
+): Promise<void> {
+  const { shouldUpdate } = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "shouldUpdate",
+      message: `Update dependencies for ${pkg.directory}?`,
+      default: false,
+    },
+  ]);
+
+  if (!shouldUpdate) {
+    logger(`Skipping dependency updates for ${pkg.directory}`);
+    return;
+  }
+
   const packageJson = getPackageJson(pkg);
   try {
-    // Read package.json to get ignore list if present
     const ignoreList = packageJson.updateIgnoreDependencies || [];
 
     // Build ignore list arguments
@@ -40,6 +55,11 @@ export function updateDependencies(
       cwd: pkgPath,
       stdio: "inherit",
     });
+    logger(`Successfully updated dependencies for ${pkg.directory}`);
+    logger(
+      `Please run "cd ${pkg.directory} && yarn install" manually then rerun this script`,
+    );
+    process.exit(0);
 
     // TODO causes the node_modules to be destroyed
     // // Install dependencies with the correct path setup
@@ -50,8 +70,6 @@ export function updateDependencies(
     //     ...process.env,
     //   },
     // });
-
-    logger(`Successfully updated dependencies for ${pkg.directory}`);
   } catch (error) {
     loggerError(
       `Error updating dependencies for ${pkg.directory}. Continuing with release process.`,
@@ -96,9 +114,12 @@ export function updatePackageVersion(
       `(\\{[^}]*?directory\\s*:\\s*["']${dirPattern}["'][^}]*?version\\s*:\\s*["'])([^"']+)(["'])`,
       "m",
     );
-    configContent = configContent.replace(packageRegex, (match, p1, p2, p3) => {
-      return `${p1}${newVersion}${p3}`;
-    });
+    configContent = configContent.replace(
+      packageRegex,
+      (_match, p1, _p2, p3) => {
+        return `${p1}${newVersion}${p3}`;
+      },
+    );
 
     writeFileSync(configPath, configContent);
     logger(

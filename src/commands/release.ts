@@ -5,7 +5,6 @@ import {
   updateDependencies,
   updatePackageVersion,
 } from "../utils/package-json.js";
-import { runPreStartChecks } from "../utils/pre-start-checks.js";
 import { publishPackage } from "../utils/publishing.js";
 import { DEFAULT_CONFIG_PATH, loadConfig } from "../utils/release-config.js";
 import { lintAndBuild, runTests } from "../utils/scripts.js";
@@ -17,8 +16,6 @@ import { getVersion, updateVariableStringValue } from "../utils/versioning.js";
 export async function release(
   configPath: string = DEFAULT_CONFIG_PATH,
 ): Promise<void> {
-  await runPreStartChecks();
-
   const config: ReleaseConfig = await loadConfig(configPath);
 
   const packageManager = config.packageManager || "yarn";
@@ -34,7 +31,7 @@ export async function release(
     try {
       if (pkg.updateDeps) {
         logger(`Updating dependencies for ${packageJson.name}...`);
-        updateDependencies(pkg, packageManager);
+        await updateDependencies(pkg, packageManager);
       }
       if (pkg.lintAndBuild) {
         logger(`Linting ${packageJson.name}`);

@@ -1,6 +1,9 @@
+import inquirer from "inquirer";
+
 import type { PackageJson, ReleasePackage } from "../types/index.js";
 import { checkTagExists, createGitTag, hasNewCommitsSinceTag } from "./git.js";
 import { logger } from "./logger.js";
+import { runPrePublishChecks } from "./pre-start-checks.js";
 
 export async function publishPackage({
   newTag,
@@ -14,13 +17,29 @@ export async function publishPackage({
   pkg: ReleasePackage;
 }): Promise<void> {
   logger(`Processing tag release (${newTag}) for ${packageJson.name}...`);
+  await runPrePublishChecks();
 
   if (!hasNewCommitsSinceTag(lastTag, pkg.directory)) {
-    logger(`No new commits since ${lastTag}, skipping lelease.`);
+    logger(`No new commits since ${lastTag}, skipping release.`);
     return;
   }
   if (await checkTagExists(newTag)) {
     logger(`Skipping ${packageJson.name}: tag ${newTag} already exists.`);
+    return;
+  }
+
+  // Ask user if they want to publish with default "Yes"
+  const { shouldPublish } = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "shouldPublish",
+      message: `Publish ${packageJson.name} with tag ${newTag}?`,
+      default: true, // Default to Yes
+    },
+  ]);
+
+  if (!shouldPublish) {
+    logger(`Skipping release of ${packageJson.name}`);
     return;
   }
 
