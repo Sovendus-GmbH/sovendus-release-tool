@@ -1,4 +1,5 @@
 import type { ReleaseConfig } from "../types/index.js";
+import { handleUncommittedChanges } from "../utils/git.js";
 import { logger, loggerError } from "../utils/logger.js";
 import {
   getPackageJson,
@@ -41,6 +42,7 @@ export async function release(
         logger(`Running tests for ${packageJson.name}`);
         runTests(process.cwd());
       }
+      await handleUncommittedChanges();
 
       const { newVersion, lastTag, newTag } = await getVersion(
         pkg,

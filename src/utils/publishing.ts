@@ -1,9 +1,13 @@
 import inquirer from "inquirer";
 
 import type { PackageJson, ReleasePackage } from "../types/index.js";
-import { checkTagExists, createGitTag, hasNewCommitsSinceTag } from "./git.js";
+import {
+  checkTagExists,
+  createGitTag,
+  ensureMainBranch,
+  hasNewCommitsSinceTag,
+} from "./git.js";
 import { logger } from "./logger.js";
-import { runPrePublishChecks } from "./pre-start-checks.js";
 
 export async function publishPackage({
   newTag,
@@ -17,7 +21,7 @@ export async function publishPackage({
   pkg: ReleasePackage;
 }): Promise<void> {
   logger(`Processing tag release (${newTag}) for ${packageJson.name}...`);
-  await runPrePublishChecks();
+  await ensureMainBranch();
 
   if (!hasNewCommitsSinceTag(lastTag, pkg.directory)) {
     logger(`No new commits since ${lastTag}, skipping release.`);
