@@ -40,9 +40,9 @@
     "@types/eslint": "9.6.1",
     "@types/fs-extra": "11.0.4",
     "@types/inquirer": "9.0.7",
-    "@types/node": "22.13.8",
-    "@typescript-eslint/eslint-plugin": "8.25.0",
-    "@typescript-eslint/parser": "8.25.0",
+    "@types/node": "22.13.9",
+    "@typescript-eslint/eslint-plugin": "8.26.0",
+    "@typescript-eslint/parser": "8.26.0",
     "eslint": "9.21.0",
     "eslint-config-prettier": "10.0.2",
     "eslint-plugin-import": "2.31.0",
@@ -59,7 +59,7 @@
     "prettier-plugin-sort-json": "4.1.1",
     "tsx": "^4.19.3",
     "typescript": "5.8.2",
-    "typescript-eslint": "8.25.0",
+    "typescript-eslint": "8.26.0",
     "vite-plugin-dts": "^4.5.3",
     "vitest": "3.0.7"
   }
