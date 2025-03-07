@@ -45,7 +45,7 @@
     "src/**/*.ts",
     "test-files/**/*.ts",
     "sov_release.config.ts"
-  ],
+, "src/commands/release.test.ts.wip"  ],
   "exclude": [
     "node_modules"
   ]
