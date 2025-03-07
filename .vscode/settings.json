@@ -15,17 +15,4 @@
   ],
   "prettier.requireConfig": true, // Ensure Prettier uses your configuration file
   "files.eol": "\n",
-  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
-  "[jsonc]": {
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
-  },
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
-  },
-  "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
-  },
-  "[markdown]": {
-    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
-  }
 }
