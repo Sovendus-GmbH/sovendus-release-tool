@@ -1,3 +1,5 @@
+import { join } from "node:path";
+
 import type { ReleaseConfig } from "../types/index.js";
 import { handleUncommittedChanges } from "../utils/git.js";
 import { logger, loggerError } from "../utils/logger.js";
@@ -27,20 +29,20 @@ export async function release(
   const originalCwd = process.cwd();
 
   for (const pkg of config.packages) {
-    process.chdir(pkg.directory);
-    const packageJson = getPackageJson(pkg);
+    const cwd = join(originalCwd, pkg.directory);
+    const packageJson = getPackageJson(cwd);
     try {
       if (pkg.updateDeps) {
         logger(`Updating dependencies for ${packageJson.name}...`);
-        await updateDependencies(pkg, packageManager);
+        await updateDependencies(pkg, packageManager, cwd);
       }
       if (pkg.lintAndBuild) {
         logger(`Linting ${packageJson.name}`);
-        lintAndBuild(process.cwd());
+        lintAndBuild(cwd);
       }
       if (pkg.test) {
         logger(`Running tests for ${packageJson.name}`);
-        runTests(process.cwd());
+        runTests(cwd);
       }
       await handleUncommittedChanges();
 
@@ -50,7 +52,7 @@ export async function release(
         config,
       );
 
-      updatePackageVersion(pkg, newVersion);
+      updatePackageVersion(pkg, newVersion, cwd, originalCwd);
       updateVariableStringValue(pkg, newVersion);
 
       if (pkg.release) {

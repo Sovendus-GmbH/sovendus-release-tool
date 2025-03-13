@@ -10,8 +10,8 @@ import { logger, loggerError } from "./logger.js";
 /**
  * Reads the package.json file for a package and returns its contents.
  */
-export function getPackageJson(pkg: ReleasePackage): PackageJson {
-  const packageJsonPath = join(process.cwd(), pkg.directory, "package.json");
+export function getPackageJson(cwd: string): PackageJson {
+  const packageJsonPath = join(cwd, "package.json");
   if (!existsSync(packageJsonPath)) {
     throw new Error(`No package.json found in ${packageJsonPath}`);
   }
@@ -25,6 +25,7 @@ export function getPackageJson(pkg: ReleasePackage): PackageJson {
 export async function updateDependencies(
   pkg: ReleasePackage,
   _packageManager: string,
+  cwd: string,
 ): Promise<void> {
   const { shouldUpdate } = await inquirer.prompt([
     {
@@ -40,7 +41,7 @@ export async function updateDependencies(
     return;
   }
 
-  const packageJson = getPackageJson(pkg);
+  const packageJson = getPackageJson(cwd);
   try {
     const ignoreList = packageJson.updateIgnoreDependencies || [];
 
@@ -49,10 +50,9 @@ export async function updateDependencies(
       ignoreList.length > 0 ? `--reject ${ignoreList.join(",")}` : "";
 
     logger(`Updating dependencies for ${pkg.directory}`);
-    const pkgPath = join(process.cwd(), pkg.directory);
     // Run npm-check-updates to find and update package.json
     execSync(`ncu -u ${ignoreArg}`, {
-      cwd: pkgPath,
+      cwd,
       stdio: "inherit",
     });
     logger(`Successfully updated dependencies for ${pkg.directory}`);
@@ -85,16 +85,19 @@ export async function updateDependencies(
 export function updatePackageVersion(
   pkg: ReleasePackage,
   newVersion: string,
+  cwd: string,
+  originalCwd: string,
 ): void {
   // Update package's package.json
-  const pkgPath = join(process.cwd(), pkg.directory, "package.json");
-  const packageJson = JSON.parse(readFileSync(pkgPath, "utf8")) as PackageJson;
+  const packageJson = getPackageJson(cwd);
+
   packageJson.version = newVersion;
-  writeFileSync(pkgPath, JSON.stringify(packageJson, null, 2));
+  const packageJsonPath = join(cwd, "package.json");
+  writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
   logger(`Updated version for ${pkg.directory} to ${newVersion}`);
 
   // Update version in sov_release.config.ts (both globalVersion if available and package's own version)
-  const configPath = join(process.cwd(), "sov_release.config.ts");
+  const configPath = join(originalCwd, "sov_release.config.ts");
   if (existsSync(configPath)) {
     let configContent = readFileSync(configPath, "utf8");
 
