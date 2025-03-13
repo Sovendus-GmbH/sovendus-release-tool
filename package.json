@@ -1,6 +1,6 @@
 {
   "name": "sovendus-release-tool",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "description": "A CLI tool for managing package releases with version bumping and publishing.",
   "license": "GPL-3.0-only",
   "bin": {
