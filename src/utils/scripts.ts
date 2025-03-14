@@ -30,25 +30,25 @@ export function runTests(packagePath: string): void {
   }
 }
 
-export const lintAndBuild = (packagePath: string): void => {
+export const lint = (cwd: string): void => {
   let lintOutput = "";
   try {
     // Use the local eslint binary directly from node_modules
-    const eslintPath = join(packagePath, "node_modules", ".bin", "eslint");
+    const eslintPath = join(cwd, "node_modules", ".bin", "eslint");
 
     // Check if eslint exists and use it directly
     if (existsSync(eslintPath)) {
       lintOutput = execSync(`${eslintPath} --fix`, {
         encoding: "utf8",
         env: { ...process.env, FORCE_COLOR: "1" },
-        cwd: packagePath,
+        cwd: cwd,
       });
     } else {
       // Fall back to yarn lint if eslint binary not found
       lintOutput = execSync(`yarn lint`, {
         encoding: "utf8",
         env: { ...process.env, FORCE_COLOR: "1" },
-        cwd: packagePath,
+        cwd: cwd,
       });
     }
   } catch (error: unknown) {
@@ -69,18 +69,17 @@ export const lintAndBuild = (packagePath: string): void => {
     console.error(`\n${lintOutput}`);
     // eslint-disable-next-line no-console
     console.error(
-      `%c[Sovendus-Release-Tool][ERROR] Linting errors detected in ${packagePath}. Aborting release.`,
+      `%c[Sovendus-Release-Tool][ERROR] Linting errors detected in ${cwd}. Aborting release.`,
       "color: red; font-size: larger;",
     );
-
+    // If there is any lint output (e.g. warnings), print it at the bottom
+    if (lintOutput.trim().length > 0) {
+      logger(`\n${lintOutput}`);
+    }
     process.exit(1);
   }
+};
 
-  // Run the build command (output directly to the terminal)
-  execSync(`yarn build`, { stdio: "inherit", cwd: packagePath });
-
-  // If there is any lint output (e.g. warnings), print it at the bottom
-  if (lintOutput.trim().length > 0) {
-    logger(`\n${lintOutput}`);
-  }
+export const build = (cwd: string): void => {
+  execSync(`yarn build`, { stdio: "inherit", cwd });
 };

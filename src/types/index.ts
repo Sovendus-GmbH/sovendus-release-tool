@@ -18,7 +18,8 @@ export interface ReleasePackage {
   directory: string;
   version?: string;
   updateDeps: boolean;
-  lintAndBuild: boolean;
+  lint: boolean;
+  build: boolean;
   test: boolean;
   versionBumper?: {
     jsVars: {

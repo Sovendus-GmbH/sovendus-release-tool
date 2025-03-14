@@ -10,7 +10,7 @@ import {
 } from "../utils/package-json.js";
 import { publishPackage } from "../utils/publishing.js";
 import { DEFAULT_CONFIG_PATH, loadConfig } from "../utils/release-config.js";
-import { lintAndBuild, runTests } from "../utils/scripts.js";
+import { build, lint, runTests } from "../utils/scripts.js";
 import { getVersion, updateVariableStringValue } from "../utils/versioning.js";
 
 /**
@@ -36,9 +36,13 @@ export async function release(
         logger(`Updating dependencies for ${packageJson.name}...`);
         await updateDependencies(pkg, packageManager, cwd);
       }
-      if (pkg.lintAndBuild) {
+      if (pkg.lint) {
         logger(`Linting ${packageJson.name}`);
-        lintAndBuild(cwd);
+        lint(cwd);
+      }
+      if (pkg.build) {
+        logger(`Building ${packageJson.name}`);
+        build(cwd);
       }
       if (pkg.test) {
         logger(`Running tests for ${packageJson.name}`);
