@@ -27,18 +27,20 @@ export async function updateDependencies(
   _packageManager: string,
   cwd: string,
 ): Promise<void> {
-  const { shouldUpdate } = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "shouldUpdate",
-      message: `Update dependencies for ${pkg.directory}?`,
-      default: false,
-    },
-  ]);
+  if (pkg.updateDeps !== "force") {
+    const { shouldUpdate } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "shouldUpdate",
+        message: `Update dependencies for ${pkg.directory}?`,
+        default: false,
+      },
+    ]);
 
-  if (!shouldUpdate) {
-    logger(`Skipping dependency updates for ${pkg.directory}`);
-    return;
+    if (!shouldUpdate) {
+      logger(`Skipping dependency updates for ${pkg.directory}`);
+      return;
+    }
   }
 
   const packageJson = getPackageJson(cwd);

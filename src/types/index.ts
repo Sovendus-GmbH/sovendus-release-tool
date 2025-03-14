@@ -16,23 +16,24 @@ export interface ReleaseConfig {
 
 export interface ReleasePackage {
   directory: string;
-  version?: string;
-  updateDeps: boolean;
+  updateDeps: true | false | "force";
   lint: boolean;
   build: boolean;
   test: boolean;
-  versionBumper?: {
-    jsVars: {
-      filePath: string;
-      varName: string;
-    }[];
-  };
-  release: boolean;
-  releaseOptions?: ReleaseOptions;
+  release: ReleaseOptions | false;
 }
 
+export type AllowedVersionBumperExtension = "php" | "ts";
+export type VersionBumperFileName =
+  `${string}.${AllowedVersionBumperExtension}`;
+
 export interface ReleaseOptions {
+  version: string;
   tagPrefix?: string;
+  versionBumper?: {
+    filePath: VersionBumperFileName;
+    varName: string;
+  }[];
   foldersToScanAndBumpThisPackage?: {
     folder: string;
   }[];

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ReleasePackage } from "../../types/index.js";
+import type { ReleaseOptions } from "../../types/index.js";
 import { logger } from "../logger.js";
 import { updateVariableStringValue } from "../versioning.js";
 
@@ -48,22 +48,12 @@ describe("updateVariableStringValue", () => {
 
       // Set up the mock return value
       vi.mocked(readFileSync).mockReturnValue(fileContent);
-
-      const pkg: ReleasePackage = {
-        directory: "test-dir",
+      const releaseConfig: ReleaseOptions = {
         version: "1.0.0",
-        releaseOptions: {},
-        versionBumper: {
-          jsVars: [{ filePath: "src/constants.ts", varName: "VERSION" }],
-        },
-        updateDeps: false,
-        lint: false,
-        build: false,
-        test: false,
-        release: false,
+        versionBumper: [{ filePath: "src/constants.ts", varName: "VERSION" }],
       };
 
-      updateVariableStringValue(pkg, newVersion);
+      updateVariableStringValue(newVersion, releaseConfig);
 
       // Verify that readFileSync was called correctly
       expect(readFileSync).toHaveBeenCalledWith("src/constants.ts", "utf8");
@@ -85,24 +75,14 @@ describe("updateVariableStringValue", () => {
         // Some comment
         const SOME_OTHER_VAR = '1.0.0';
       `;
-
       vi.mocked(readFileSync).mockReturnValue(fileContent);
-
-      const pkg: ReleasePackage = {
-        directory: "test-dir",
+      const releaseConfig: ReleaseOptions = {
         version: "1.0.0",
-        releaseOptions: {},
-        versionBumper: {
-          jsVars: [{ filePath: "src/constants.ts", varName: "VERSION" }],
-        },
-        updateDeps: false,
-        lint: false,
-        build: false,
-        test: false,
-        release: false,
+        versionBumper: [{ filePath: "src/constants.ts", varName: "VERSION" }],
       };
-
-      expect(() => updateVariableStringValue(pkg, newVersion)).toThrow();
+      expect(() =>
+        updateVariableStringValue(newVersion, releaseConfig),
+      ).toThrow();
     });
 
     it("should handle single quotes in TS/JS files", () => {
@@ -111,21 +91,11 @@ describe("updateVariableStringValue", () => {
 
       vi.mocked(readFileSync).mockReturnValue(fileContent);
 
-      const pkg: ReleasePackage = {
-        directory: "test-dir",
+      const releaseConfig: ReleaseOptions = {
         version: "1.0.0",
-        releaseOptions: {},
-        versionBumper: {
-          jsVars: [{ filePath: "src/constants.ts", varName: "VERSION" }],
-        },
-        updateDeps: false,
-        lint: false,
-        build: false,
-        test: false,
-        release: false,
+        versionBumper: [{ filePath: "src/constants.ts", varName: "VERSION" }],
       };
-
-      updateVariableStringValue(pkg, newVersion);
+      updateVariableStringValue(newVersion, releaseConfig);
 
       expect(writeFileSync).toHaveBeenCalledWith(
         "src/constants.ts",
@@ -138,22 +108,11 @@ describe("updateVariableStringValue", () => {
       const expectedContent = 'const VERSION = "1.5.0";';
 
       vi.mocked(readFileSync).mockReturnValue(fileContent);
-
-      const pkg: ReleasePackage = {
-        directory: "test-dir",
+      const releaseConfig: ReleaseOptions = {
         version: "1.0.0",
-        releaseOptions: {},
-        versionBumper: {
-          jsVars: [{ filePath: "src/constants.ts", varName: "VERSION" }],
-        },
-        updateDeps: false,
-        lint: false,
-        build: false,
-        test: false,
-        release: false,
+        versionBumper: [{ filePath: "src/constants.ts", varName: "VERSION" }],
       };
-
-      updateVariableStringValue(pkg, newVersion);
+      updateVariableStringValue(newVersion, releaseConfig);
 
       expect(writeFileSync).toHaveBeenCalledWith(
         "src/constants.ts",
@@ -180,24 +139,14 @@ define('OTHER_CONSTANT', 'something else');
 define('SOVENDUS_VERSION', '2.1.0');
 `);
 
-      const pkg: ReleasePackage = {
-        directory: "test-dir",
+      const releaseConfig: ReleaseOptions = {
         version: "1.0.0",
-        releaseOptions: {},
-        versionBumper: {
-          jsVars: [
-            { filePath: "src/constants.php", varName: "VERSION" },
-            { filePath: "src/constants.php", varName: "SOVENDUS_VERSION" },
-          ],
-        },
-        updateDeps: false,
-        lint: false,
-        build: false,
-        test: false,
-        release: false,
+        versionBumper: [
+          { filePath: "src/constants.php", varName: "VERSION" },
+          { filePath: "src/constants.php", varName: "SOVENDUS_VERSION" },
+        ],
       };
-
-      updateVariableStringValue(pkg, newVersion);
+      updateVariableStringValue(newVersion, releaseConfig);
 
       // Verify that readFileSync was called twice (once for each variable)
       expect(readFileSync).toHaveBeenCalledTimes(2);
@@ -245,21 +194,13 @@ define('SOME_OTHER_VAR', '1.0.0');
 
       vi.mocked(readFileSync).mockReturnValue(fileContent);
 
-      const pkg: ReleasePackage = {
-        directory: "test-dir",
+      const releaseConfig: ReleaseOptions = {
         version: "1.0.0",
-        releaseOptions: {},
-        versionBumper: {
-          jsVars: [{ filePath: "src/constants.php", varName: "VERSION" }],
-        },
-        updateDeps: false,
-        lint: false,
-        build: false,
-        test: false,
-        release: false,
+        versionBumper: [{ filePath: "src/constants.php", varName: "VERSION" }],
       };
-
-      expect(() => updateVariableStringValue(pkg, newVersion)).toThrow();
+      expect(() =>
+        updateVariableStringValue(newVersion, releaseConfig),
+      ).toThrow();
     });
 
     it("should handle PHP define with different spacing", () => {
@@ -272,21 +213,11 @@ define("VERSION",'1.5.0');
 
       vi.mocked(readFileSync).mockReturnValue(fileContent);
 
-      const pkg: ReleasePackage = {
-        directory: "test-dir",
+      const releaseConfig: ReleaseOptions = {
         version: "1.0.0",
-        releaseOptions: {},
-        versionBumper: {
-          jsVars: [{ filePath: "src/constants.php", varName: "VERSION" }],
-        },
-        updateDeps: false,
-        lint: false,
-        build: false,
-        test: false,
-        release: false,
+        versionBumper: [{ filePath: "src/constants.php", varName: "VERSION" }],
       };
-
-      updateVariableStringValue(pkg, newVersion);
+      updateVariableStringValue(newVersion, releaseConfig);
 
       expect(writeFileSync).toHaveBeenCalledWith(
         "src/constants.php",
@@ -304,21 +235,11 @@ define('VERSION', "1.5.0");
 
       vi.mocked(readFileSync).mockReturnValue(fileContent);
 
-      const pkg: ReleasePackage = {
-        directory: "test-dir",
+      const releaseConfig: ReleaseOptions = {
         version: "1.0.0",
-        releaseOptions: {},
-        versionBumper: {
-          jsVars: [{ filePath: "src/constants.php", varName: "VERSION" }],
-        },
-        updateDeps: false,
-        lint: false,
-        build: false,
-        test: false,
-        release: false,
+        versionBumper: [{ filePath: "src/constants.php", varName: "VERSION" }],
       };
-
-      updateVariableStringValue(pkg, newVersion);
+      updateVariableStringValue(newVersion, releaseConfig);
 
       expect(writeFileSync).toHaveBeenCalledWith(
         "src/constants.php",
@@ -335,24 +256,14 @@ define('VERSION', "1.5.0");
       .mockReturnValueOnce(tsFileContent)
       .mockReturnValueOnce(phpFileContent);
 
-    const pkg: ReleasePackage = {
-      directory: "test-dir",
+    const releaseConfig: ReleaseOptions = {
       version: "1.0.0",
-      releaseOptions: {},
-      versionBumper: {
-        jsVars: [
-          { filePath: "src/constants.ts", varName: "VERSION" },
-          { filePath: "src/constants.php", varName: "VERSION" },
-        ],
-      },
-      updateDeps: false,
-      lint: false,
-      build: false,
-      test: false,
-      release: false,
+      versionBumper: [
+        { filePath: "src/constants.ts", varName: "VERSION" },
+        { filePath: "src/constants.php", varName: "VERSION" },
+      ],
     };
-
-    updateVariableStringValue(pkg, newVersion);
+    updateVariableStringValue(newVersion, releaseConfig);
 
     expect(writeFileSync).toHaveBeenCalledTimes(2);
     expect(logger).toHaveBeenCalledTimes(2);

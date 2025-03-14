@@ -48,18 +48,20 @@ export async function release(
         logger(`Running tests for ${packageJson.name}`);
         runTests(cwd);
       }
-      await handleUncommittedChanges();
+      const releaseConfig = pkg.release;
+      if (releaseConfig) {
+        await handleUncommittedChanges();
 
-      const { newVersion, lastTag, newTag } = await getVersion(
-        pkg,
-        packageJson,
-        config,
-      );
+        const { newVersion, lastTag, newTag } = await getVersion(
+          pkg,
+          packageJson,
+          config,
+          releaseConfig,
+        );
 
-      updatePackageVersion(pkg, newVersion, cwd, originalCwd);
-      updateVariableStringValue(pkg, newVersion);
+        updatePackageVersion(pkg, newVersion, cwd, originalCwd);
+        updateVariableStringValue(newVersion, releaseConfig);
 
-      if (pkg.release) {
         await publishPackage({ newTag, lastTag, packageJson, pkg });
       }
     } catch (error) {

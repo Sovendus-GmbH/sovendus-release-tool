@@ -5,6 +5,7 @@ import inquirer from "inquirer";
 import type {
   PackageJson,
   ReleaseConfig,
+  ReleaseOptions,
   ReleasePackage,
 } from "../types/index.js";
 import { getLastVersionFromGitTag, promptVersionIncrement } from "./git.js";
@@ -20,13 +21,14 @@ export async function getVersion(
   pkg: ReleasePackage,
   packageJson: PackageJson,
   config: ReleaseConfig,
+  releaseConfig: ReleaseOptions,
 ): Promise<VersionInfo> {
-  const tagPrefix = pkg.releaseOptions?.tagPrefix || "";
+  const tagPrefix = releaseConfig.tagPrefix || "";
   const currentGitVersionNumber = getLastVersionFromGitTag(
     tagPrefix,
     pkg.directory,
   );
-  const currentVersionNumber = (config.globalVersion || pkg.version) as string;
+  const currentVersionNumber = config.globalVersion || releaseConfig.version;
 
   const lastTag = `${tagPrefix}${currentGitVersionNumber}`;
   logger(`Processing ${packageJson.name}...`);
@@ -114,10 +116,10 @@ export function bumpVersion(
 }
 
 export function updateVariableStringValue(
-  pkg: ReleasePackage,
   newVersion: string,
+  releaseConfig: ReleaseOptions,
 ): void {
-  pkg.versionBumper?.jsVars.forEach((fileInfo) => {
+  releaseConfig.versionBumper?.forEach((fileInfo) => {
     const fileContent = readFileSync(fileInfo.filePath, "utf8");
     let updatedContent = fileContent;
 
