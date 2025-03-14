@@ -24,6 +24,7 @@ async function getCompiledConfigPath(configPath: string): Promise<string> {
     }
 
     await build({
+      logLevel: "silent",
       plugins: [],
       build: {
         lib: {
