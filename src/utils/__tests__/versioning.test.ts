@@ -57,7 +57,8 @@ describe("updateVariableStringValue", () => {
           jsVars: [{ filePath: "src/constants.ts", varName: "VERSION" }],
         },
         updateDeps: false,
-        lintAndBuild: false,
+        lint: false,
+        build: false,
         test: false,
         release: false,
       };
@@ -95,7 +96,8 @@ describe("updateVariableStringValue", () => {
           jsVars: [{ filePath: "src/constants.ts", varName: "VERSION" }],
         },
         updateDeps: false,
-        lintAndBuild: false,
+        lint: false,
+        build: false,
         test: false,
         release: false,
       };
@@ -117,7 +119,8 @@ describe("updateVariableStringValue", () => {
           jsVars: [{ filePath: "src/constants.ts", varName: "VERSION" }],
         },
         updateDeps: false,
-        lintAndBuild: false,
+        lint: false,
+        build: false,
         test: false,
         release: false,
       };
@@ -144,7 +147,8 @@ describe("updateVariableStringValue", () => {
           jsVars: [{ filePath: "src/constants.ts", varName: "VERSION" }],
         },
         updateDeps: false,
-        lintAndBuild: false,
+        lint: false,
+        build: false,
         test: false,
         release: false,
       };
@@ -187,7 +191,8 @@ define('SOVENDUS_VERSION', '2.1.0');
           ],
         },
         updateDeps: false,
-        lintAndBuild: false,
+        lint: false,
+        build: false,
         test: false,
         release: false,
       };
@@ -248,7 +253,8 @@ define('SOME_OTHER_VAR', '1.0.0');
           jsVars: [{ filePath: "src/constants.php", varName: "VERSION" }],
         },
         updateDeps: false,
-        lintAndBuild: false,
+        lint: false,
+        build: false,
         test: false,
         release: false,
       };
@@ -274,7 +280,8 @@ define("VERSION",'1.5.0');
           jsVars: [{ filePath: "src/constants.php", varName: "VERSION" }],
         },
         updateDeps: false,
-        lintAndBuild: false,
+        lint: false,
+        build: false,
         test: false,
         release: false,
       };
@@ -305,7 +312,8 @@ define('VERSION', "1.5.0");
           jsVars: [{ filePath: "src/constants.php", varName: "VERSION" }],
         },
         updateDeps: false,
-        lintAndBuild: false,
+        lint: false,
+        build: false,
         test: false,
         release: false,
       };
@@ -338,7 +346,8 @@ define('VERSION', "1.5.0");
         ],
       },
       updateDeps: false,
-      lintAndBuild: false,
+      lint: false,
+      build: false,
       test: false,
       release: false,
     };
