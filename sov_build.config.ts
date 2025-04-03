@@ -4,9 +4,9 @@ const buildConfig: BuildConfig = {
   foldersToClean: ["dist"],
   filesToCompile: [
     {
-      input: "src/index.ts",
-      output: "dist/index",
-      options: {
+      sovOptions: {
+        input: "src/index.ts",
+        output: "dist/index",
         type: "vanilla",
         packageConfig: {
           dtsEntryRoot: "src",
