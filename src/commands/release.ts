@@ -62,6 +62,11 @@ export async function release(
         updatePackageVersion(pkg, newVersion, cwd, originalCwd);
         updateVariableStringValue(newVersion, releaseConfig);
 
+        if (pkg.build) {
+          logger(`Building again with new version for ${packageJson.name}`);
+          build(cwd);
+        }
+
         await publishPackage({ newTag, lastTag, packageJson, pkg });
       }
     } catch (error) {
