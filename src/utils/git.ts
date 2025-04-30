@@ -57,7 +57,12 @@ export function createGitTag(tag: string, mainPackagePath: string): void {
 
     // Only attempt to commit if there are changes
     if (statusOutput.length > 0) {
-      execSync(`git commit -am "Release: ${tag}"`, {
+      // Stage all files including untracked files
+      execSync(`git add .`, {
+        stdio: "inherit",
+        cwd: mainPackagePath,
+      });
+      execSync(`git commit -m "Release: ${tag}"`, {
         stdio: "inherit",
         cwd: mainPackagePath,
       });
