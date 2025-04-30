@@ -27,7 +27,10 @@ export async function publishPackage({
   }
   await ensureMainBranch();
 
-  if (!hasNewCommitsSinceTag(lastTag, pkg.directory)) {
+  // Special handling for repositories with no existing tags
+  if (lastTag === "0.0.0") {
+    logger("No previous tags found. This will be the first release.");
+  } else if (!hasNewCommitsSinceTag(lastTag, pkg.directory)) {
     logger(`No new commits since ${lastTag}, skipping release.`);
     return;
   }

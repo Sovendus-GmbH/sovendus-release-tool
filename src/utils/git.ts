@@ -10,6 +10,19 @@ export function getLastVersionFromGitTag(
   mainPackagePath: string,
 ): string {
   try {
+    // First check if any tags exist at all
+    const tagsExist =
+      execSync("git tag", { cwd: mainPackagePath }).toString().trim().length >
+      0;
+
+    if (!tagsExist) {
+      logger(
+        "No git tags found in the repository. Using 0.0.0 as the initial version.",
+      );
+      return "0.0.0";
+    }
+
+    // If tags exist, try to find the latest one matching our prefix
     const lastGitTag = execSync(
       `git describe --tags --abbrev=0 --match="${tagPrefix}*"`,
       { cwd: mainPackagePath },
@@ -19,8 +32,10 @@ export function getLastVersionFromGitTag(
     const currentTagVersionNumber = lastGitTag.replace(tagPrefix, "");
     return currentTagVersionNumber;
   } catch (error) {
+    // This will catch the "No names found, cannot describe anything" error
+    // when there are no tags matching our prefix
     loggerError(
-      "No previous tag found. Using 0.0.0 as the initial version.",
+      "No previous tag found matching the prefix. Using 0.0.0 as the initial version.",
       error,
     );
     return "0.0.0";
@@ -101,11 +116,40 @@ export function hasNewCommitsSinceTag(
   tag: string,
   mainPackagePath: string,
 ): boolean {
-  const logOutput = execSync(`git log ${tag}..HEAD --oneline || true`, {
-    encoding: "utf8",
-    cwd: mainPackagePath,
-  });
-  return logOutput.trim().length > 0;
+  // If the tag is 0.0.0, it means there are no previous tags
+  // In this case, we should return true to indicate there are new commits
+  if (tag === "0.0.0") {
+    return true;
+  }
+
+  try {
+    // Check if the tag exists in the repository
+    const tagExists =
+      execSync(`git tag --list ${tag}`, {
+        encoding: "utf8",
+        cwd: mainPackagePath,
+      }).trim().length > 0;
+
+    // If the tag doesn't exist, return true (all commits are new)
+    if (!tagExists) {
+      logger(`Tag ${tag} does not exist. Treating all commits as new.`);
+      return true;
+    }
+
+    // If the tag exists, check for new commits since that tag
+    const logOutput = execSync(`git log ${tag}..HEAD --oneline || true`, {
+      encoding: "utf8",
+      cwd: mainPackagePath,
+    });
+    return logOutput.trim().length > 0;
+  } catch (error) {
+    // If any error occurs, log it and return true to allow the release process to continue
+    loggerError(
+      `Error checking for commits since tag ${tag}. Continuing with release.`,
+      error,
+    );
+    return true;
+  }
 }
 
 export async function promptVersionIncrement(): Promise<
