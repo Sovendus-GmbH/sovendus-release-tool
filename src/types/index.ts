@@ -14,6 +14,11 @@ export interface ReleaseConfig {
   globalVersion?: string;
 }
 
+export type FoldersToZip = {
+  input: string;
+  output: string;
+}[];
+
 export interface ReleasePackage {
   directory: string;
   updateDeps: true | false | "force";
@@ -30,6 +35,7 @@ export type VersionBumperFileName =
 export interface ReleaseOptions {
   version: string;
   tagPrefix?: string;
+  foldersToZip?: FoldersToZip;
   versionBumper?: {
     filePath: VersionBumperFileName;
     varName: string;

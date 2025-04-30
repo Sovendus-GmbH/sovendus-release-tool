@@ -8,7 +8,7 @@ import {
   updateDependencies,
   updatePackageVersion,
 } from "../utils/package-json.js";
-import { publishPackage } from "../utils/publishing.js";
+import { publishPackage, zipFolders } from "../utils/publishing.js";
 import { DEFAULT_CONFIG_PATH, loadConfig } from "../utils/release-config.js";
 import { build, lint, runTests } from "../utils/scripts.js";
 import { getVersion, updateVariableStringValue } from "../utils/versioning.js";
@@ -62,9 +62,15 @@ export async function release(
         updatePackageVersion(pkg, newVersion, cwd, originalCwd);
         updateVariableStringValue(newVersion, releaseConfig);
 
-        if (pkg.build) {
-          logger(`Building again with new version for ${packageJson.name}`);
-          build(cwd);
+        if (releaseConfig.foldersToZip) {
+          logger(`Zipping folders for ${packageJson.name}`);
+          await zipFolders({
+            newTag,
+            lastTag,
+            packageJson,
+            pkg,
+            foldersToZip: releaseConfig.foldersToZip,
+          });
         }
 
         await publishPackage({ newTag, lastTag, packageJson, pkg });
